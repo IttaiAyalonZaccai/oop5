@@ -1,3 +1,5 @@
 // int a = -5;
- // int a = -5;
 int a = -5;
+
+// ignore 2
+int c = ;

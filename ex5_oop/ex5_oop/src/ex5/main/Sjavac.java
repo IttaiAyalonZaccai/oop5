@@ -15,49 +15,38 @@ public class Sjavac {
 
         // 2) open file
         String path = args[0];
-        String line;
+        FileProcessor fileProcessor;
+
         try (
                 FileReader fileReader = new FileReader(path);
                 BufferedReader bufferedReader = new BufferedReader(fileReader)
             ) {
-            FileProcessor fileProcessor = new FileProcessor(bufferedReader);
+            fileProcessor = new FileProcessor(bufferedReader);
             fileProcessor.checkLineValidity();
-//            checkLineValidity(bufferedReader);
+
+
+//            fileProcessor.printIgnoredLines();
+
             // todo:
             //  3) loop over lines in file:
             //      a) check Validness of each line
             //      b) remove spaces, etc
 //                try (lineValidation(line)){}
 //                catch (RuntimeException e){
-//
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
             System.exit(IO_ERROR_EXIT_CODE);
         }
-        
+
+
+
         // todo: Step 2: Validation Check for Entire File.
     }
 
-    private static void checkLineValidity(BufferedReader bufferedReader) throws IOException {
-        int lineCounter = 0;
-        String line;
-        while((line = bufferedReader.readLine()) != null) {
-            lineCounter++;
-            try {
-                RowValidnessClass.check_suffixes(line, lineCounter);
-                RowValidnessClass.checkMiddleComments(line, lineCounter);
-            }
-            catch (RuntimeException e){
-                System.out.println(e.getMessage());
-                System.exit(SYNTAX_ERROR_EXIT_CODE);
-            }
+
 // todo: make sure there are no arrays and operators 5.1
 //                }
-        }
-    }
-
-
-
 
 }
 

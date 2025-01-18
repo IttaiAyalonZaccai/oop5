@@ -58,7 +58,10 @@ public class FileProcessor{
                 System.exit(SYNTAX_ERROR_EXIT_CODE);
             }
         }
+
     }
+
+
 
     /**
      * Checks if a line is a comment or blank line and adds its index to ignored lines.
@@ -71,6 +74,12 @@ public class FileProcessor{
         Matcher mac = pattern.matcher(line);
         if (mac.matches()) {
             ignoredLinesIndexes.add(index);
+        }
+    }
+
+    public void printIgnoredLines() {
+        for(int i: ignoredLinesIndexes){
+            System.out.println(linesArray.get(i));
         }
     }
 }
