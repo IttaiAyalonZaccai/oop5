@@ -26,7 +26,7 @@ public class Sjavac {
             fileProcessor.getAllFunctionsNames();
             System.out.println();
             // validate file
-//            fileProcessor.validEntireFile();
+            fileProcessor.processAllMethods();
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -41,10 +41,3 @@ public class Sjavac {
 //                }
 
 }
-
-
-// List of Regex expressions:
-// A code line, which must end with one of the following suffixes:
-//    .*[;{}]\s*$
-
-//    Pattern pat = Pattern.compile("(050|052|054|057|059)[0-9]{7}");

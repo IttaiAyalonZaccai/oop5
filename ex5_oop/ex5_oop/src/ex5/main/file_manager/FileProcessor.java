@@ -2,7 +2,6 @@ package ex5.main.file_manager;
 
 import ex5.main.Variable;
 
-import javax.lang.model.element.VariableElement;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.*;
@@ -246,38 +245,50 @@ public class FileProcessor{
      * @param methodLines        List of code lines representing the method.
      * @return                   0 if the method is valid, 1 if invalid.
      */
-    public int validateMethod(List<String> methodLines, String methodName) {
+    public void validateMethod(List<String> methodLines, String methodName) {
         try {
-            // Step 1: Validate Method Signature todo yoav is already doing it in the pre-process (?)
-            String methodSignature = methodLines.get(0).trim();
-//            validateMethodSignature(methodSignature);
-
-            // Step 2: Initialize local variable map
+            // Step 1: Initialize local variable map
             Map<String, Variable<?>> localVariables = new HashMap<>();
-            
-            
-//
-//          todo
-//           List<functionsMap.get(methodName);
-//            for (String, Variable<?> name, param: functionsMap.get(methodName)) {
-//                localVariables.put(name, param);
-//            }
-//            extractMethodParameters(methodSignature, localVariables); // todo yoav also did
+            // Add method parameters from functionsMap to localVariables
+            addMethodParametersToLocalVariables(methodName, localVariables);
 
-            // Step 3: Validate Method Body
-//            validateMethodBody(methodLines.subList(1, methodLines.size() - 1), localVariables, globalMap, functionsSet);
-
-            // Step 4: Ensure Method Ends with Valid Return
+            // Step 2: Validate Method Body
+            validateMethodBody(methodLines.subList(1, methodLines.size() - 1), localVariables);
+            System.out.println();
+            // Step 3: Ensure Method Ends with Valid Return
 //            validateReturnStatement(methodLines.get(methodLines.size() - 1).trim());
-
-            // Method is valid
-            return 0;
-
         } catch (RuntimeException e) {
-            System.err.println("Validation error in method: " + e.getMessage());
-            return 1;
+            System.out.println(e.getMessage());
+            System.exit(SYNTAX_ERROR_EXIT_CODE);
         }
     }
+
+    private void addMethodParametersToLocalVariables(String methodName, Map<String, Variable<?>> localVariables) {
+        // Retrieve the parameter list for the given method
+        List<Map<String, Variable<Object>>> parameterList = functionsMap.get(methodName);
+
+        if (parameterList == null) {
+            throw new RuntimeException("Method not found in functionsMap: " + methodName);
+        }
+
+        // Add each parameter to the localVariables map
+        for (Map<String, Variable<Object>> parameterMap : parameterList) {
+            for (Map.Entry<String, Variable<Object>> entry : parameterMap.entrySet()) {
+                String paramName = entry.getKey();
+                Variable<Object> paramVariable = entry.getValue();
+
+                // Ensure no duplicate parameter names in local scope
+                if (localVariables.containsKey(paramName)) {
+                    throw new RuntimeException("Duplicate parameter name in method: " + methodName);
+                }
+
+                // Add parameter to localVariables
+                localVariables.put(paramName, new Variable<>(null, paramVariable.getType(), paramVariable.isFinal()));
+            }
+        }
+    }
+
+
 
     private void extractMethodParameters(String signature, Map<String, Variable<?>> localVariables) {
         String paramsPart = signature.substring(signature.indexOf('(') + 1, signature.indexOf(')')).trim();
@@ -298,7 +309,8 @@ public class FileProcessor{
         }
     }
 
-    private void validateMethodBody(List<String> bodyLines, Map<String, Variable<?>> localVariables, Map<String, Variable<?>> globalMap, Set<String> functionsSet) {
+    private void validateMethodBody(List<String> bodyLines, Map<String, Variable<?>> localVariables)
+            throws RuntimeException{
         int braceBalance = 0;
 
         for (String line : bodyLines) {
@@ -314,12 +326,12 @@ public class FileProcessor{
 
             // Validate line content
             if (line.startsWith("if") || line.startsWith("while")) {
-                validateConditionalBlock(line, bodyLines, localVariables, globalMap, functionsSet);
+                validateConditionalBlock(line, bodyLines, localVariables);
             } else if (line.startsWith("return")) {
                 // Ensure return is handled at the end of the method todo?
                 continue;
             } else {
-//                validateLine(line, localVariables, globalMap, functionsSet); todo un-comment
+                validateLine(line, localVariables);
             }
         }
 
@@ -328,7 +340,7 @@ public class FileProcessor{
         }
     }
 
-    private void validateConditionalBlock(String line, List<String> bodyLines, Map<String, Variable<?>> localVariables, Map<String, Variable<?>> globalMap, Set<String> functionsSet) {
+    private void validateConditionalBlock(String line, List<String> bodyLines, Map<String, Variable<?>> localVariables) {
         String conditionalPattern = "(if|while)\\s*\\(([^)]+)\\)\\s*\\{";
         if (!line.matches(conditionalPattern)) {
             throw new RuntimeException("Invalid conditional block: " + line);
@@ -339,21 +351,22 @@ public class FileProcessor{
         // Nested blocks validation would happen recursively in validateMethodBody
     }
 
-    private void validateLine(String line, Map<String, Variable<?>> localVariables, Map<String, Variable<?>> globalMap, Set<String> functionsSet) {
-        if (line.matches(".*;")) {
-            if (line.contains("=")) {
-                validateAssignment(line, localVariables, globalMap);
+    private void validateLine(String line, Map<String, Variable<?>> localVariables) {
+        if (line.matches(".*;")) { // todo maybe redundant
+            // todo maybe need to add validation for line valid structure
+            if (line.contains("=")) { // todo, change to: valid it is a valid assignment
+                validateAssignment(line, localVariables);
             } else if (line.matches("(int|double|boolean|char|String).*")) {
                 validateVariableDeclaration(line, localVariables);
             } else {
-                validateMethodCall(line, functionsSet);
+                validateMethodCall(line);
             }
         } else {
             throw new RuntimeException("Invalid line: " + line);
         }
     }
 
-    private void validateAssignment(String line, Map<String, Variable<?>> localVariables, Map<String, Variable<?>> globalMap) {
+    private void validateAssignment(String line, Map<String, Variable<?>> localVariables) {
         String[] parts = line.split("\\s*=\\s*");
         String variableName = parts[0].trim();
         String value = parts[1].replace(";", "").trim();
@@ -430,7 +443,7 @@ public class FileProcessor{
         }
     }
 
-    private void validateMethodCall(String line, Set<String> functionsSet) {
+    private void validateMethodCall(String line) {
         // Regex for method call: methodName(arg1, arg2, ...)
         String methodCallPattern = "[a-zA-Z_][a-zA-Z0-9_]*\\s*\\(([^)]*)\\)\\s*;";
         if (!line.matches(methodCallPattern)) {
@@ -438,7 +451,7 @@ public class FileProcessor{
         }
 
         String methodName = line.substring(0, line.indexOf('(')).trim();
-        if (!functionsSet.contains(methodName)) {
+        if (!functionsMap.containsKey(methodName)) {
             throw new RuntimeException("Undefined method: " + methodName);
         }
 
@@ -493,41 +506,11 @@ public class FileProcessor{
         }
     }
 
-
-
-//    private void checkFunctionDecleration(String line) throws RuntimeException {
-//        String[] splitted = line.split("\\(", 2); // Split into left and right parts at the first '('
-//        if (splitted.length != 2) {
-//            throw new RuntimeException("Invalid function declaration: Missing parentheses.");
-//        }
-//
-//        String functionLeftPart = splitted[0];
-//        String functionRightPart = splitted[1].trim();
-//
-//        // Validate the left part of the function declaration
-//        Pattern leftPattern = Pattern.compile("^\\s*void\\s+([a-zA-Z]\\w*)\\s*$");
-//        Matcher matcher = leftPattern.matcher(functionLeftPart);
-//        if (!matcher.matches()) {
-//            throw new RuntimeException("Invalid function declaration syntax: " + line);
-//        }
-//
-//        // Extract function name
-//        String functionName = matcher.group(1);
-//
-//        // Check for duplicate function names
-//        if (functionsMap.containsKey(functionName)) {
-//            throw new RuntimeException("Duplicate function name: " + functionName);
-//        }
-//
-//        // Validate the right part (parameters)
-
-
     private void checkFunctionDecleration(String line) throws RuntimeException {
         String[] splitted = line.split("\\(", 2); // Split into left and right parts at the first '('
         if (splitted.length != 2) {
             throw new RuntimeException("Invalid function declaration: Missing parentheses.");
         }
-
         String functionLeftPart = splitted[0];
         String functionRightPart = splitted[1].trim();
 
@@ -545,14 +528,6 @@ public class FileProcessor{
         if (functionsMap.containsKey(functionName)) {
             throw new RuntimeException("Duplicate function name: " + functionName);
         }
-
-        // Validate the right part (parameters)
-//        Pattern paramPattern = Pattern.compile(
-//                String.format(
-//                        "^\\s*((\\s*(%s)\\s+[a-zA-Z]\\w*\\s*)(,\\s*(%s)\\s+[a-zA-Z]\\w*\\s*)*)\\)\\s*\\{\\s*$",
-//                        VALID_TYPES, VALID_TYPES
-//                )
-//        );
         Pattern paramPattern = Pattern.compile("^\\s*((\\s*(int|double|boolean|char|String)" +
                 "\\s+[a-zA-Z]\\w*\\s*)(,\\s*(int|double|boolean|char|String)\\s+[a-zA-Z]\\w*\\s*)*)?\\)\\s*\\{\\s*$");
         Matcher paramMatcher = paramPattern.matcher(functionRightPart);
@@ -564,9 +539,10 @@ public class FileProcessor{
         String paramList = paramMatcher.group(1);
 //        List<Variable<?>> paramTypes = new ArrayList<>();
 
+        List<Map<String, Variable<Object>>> parameterList = new ArrayList<>();
+
         if (paramList != null && !paramList.isEmpty()) { // Check for null and non-empty parameter list
             String[] params = paramList.split("\\s*,\\s*");
-            List<Map<String, Variable<Object>>> parameterList = new ArrayList<>();
 //            functionsMap.put(functionName, parameterList);
             for (String param : params) {
                 String[] paramParts = param.trim().split("\\s+");
@@ -580,35 +556,14 @@ public class FileProcessor{
                     throw new RuntimeException("Invalid parameter type : " + paramType);
                 }
 
-                if (paramType.equals("int")) {
-                    Variable<Object> variable = new Variable<>(null, paramType, false);
-
-                    Map<String, Variable<Object>> varMap = new HashMap<>();
-
-                    varMap.put(paramName, variable);
-                    parameterList.add(varMap);
-
-                } else if (paramType.equals("double")) {
-                    Variable<Double> variable = new Variable<>(null, paramType, false);
-                    Map<String, Variable<Double>> varMap = new HashMap<>();
-                    varMap.put(paramName, variable);
-                } else if (paramType.equals("boolean")) {
-                    Variable<Boolean> variable = new Variable<>(null, paramType, false);
-                    Map<String, Variable<Boolean>> varMap = new HashMap<>();
-                    varMap.put(paramName, variable);
-                } else if (paramType.equals("char")) {
-                    Variable<Character> variable = new Variable<>(null, paramType, false);
-                    Map<String, Variable<Character>> varMap = new HashMap<>();
-                    varMap.put(paramName, variable);
-                } else if (paramType.equals("String")) {
-                    Variable<String> variable = new Variable<>(null, paramType, false);
-                    Map<String, Variable<String>> varMap = new HashMap<>();
-                    varMap.put(paramName, variable);
-                } else {
-                    // Use assert to check for unsupported paramTypes
-                    assert false : "Unsupported parameter type: " + paramType;
-                }
+                Variable<Object> variable = new Variable<>(null, paramType, false);
+                Map<String, Variable<Object>> varMap = new HashMap<>();
+                varMap.put(paramName, variable);
+                parameterList.add(varMap);
             }
+            functionsMap.put(functionName, parameterList);
+        }
+        else{
             functionsMap.put(functionName, parameterList);
         }
     }
@@ -625,9 +580,7 @@ public class FileProcessor{
                 // Extract method name from the declaration
                 String methodName = extractMethodName(line);
                 // Validate the method
-                if (validateMethod(methodLines, methodName) == 1) {
-                    return 1; // Invalid method found
-                }
+                validateMethod(methodLines, methodName);
             }
         }
         return 0; // All methods are valid
@@ -668,31 +621,3 @@ public class FileProcessor{
         return methodLines;
     }
 }
-
-
-
-
-//private void checkFunctionDecleration(String line) throws RuntimeException{
-//    String[] splitted = line.split("\\(");
-//    String functionLeftPart = splitted[0];
-//    String functionRightPart = splitted[1];
-//    Pattern leftPattern = Pattern.compile("^\\s*void\\s+([a-zA-Z]\\w*)\\*$");
-//    Matcher matcher = leftPattern.matcher(functionLeftPart);
-//// check
-//    if (matcher.matches()){
-//        String functionName = matcher.group(1);
-//        if (functionsMap.containsKey(functionName)) {
-//            throw new RuntimeException("Duplicate function name: " + functionName);
-//        }
-//    }
-//    else{
-//        throw new RuntimeException("Invalid function decleration error");
-//    }
-//// parse the functionRightPart according to: type1 prameter1, type2 parameter2 ...) {
-////        Pattern rightPattern =
-//
-////        "^\s*void\s+([a-zA-Z]\w*)\s+\\([a-zA-Z]*)\s+(\\w+)(\s*,\s*\\w+\s+)*"
-////        return matcher.matches();
-////try to do all togather:
-////        ^\s*void\s+([a-zA-Z]\w*)\s+\\([a-zA-Z]*)\s+(\\w+)\s*\)\s*{\s*$
-//}
