@@ -16,30 +16,22 @@ public class Sjavac {
         // 2) open file
         String path = args[0];
         FileProcessor fileProcessor;
-
         try (
                 FileReader fileReader = new FileReader(path);
                 BufferedReader bufferedReader = new BufferedReader(fileReader)
             ) {
+            // PreProcess:
             fileProcessor = new FileProcessor(bufferedReader);
-            fileProcessor.checkLineValidity();
-
-
-//            fileProcessor.printIgnoredLines();
-
-            // todo:
-            //  3) loop over lines in file:
-            //      a) check Validness of each line
-            //      b) remove spaces, etc
-//                try (lineValidation(line)){}
-//                catch (RuntimeException e){
+            fileProcessor.validAndCreateGlobalMap();
+            fileProcessor.getAllFunctionsNames();
+            System.out.println();
+            // validate file
+//            fileProcessor.validEntireFile();
         }
         catch (IOException e) {
             e.printStackTrace();
             System.exit(IO_ERROR_EXIT_CODE);
         }
-
-
 
         // todo: Step 2: Validation Check for Entire File.
     }

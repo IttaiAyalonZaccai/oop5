@@ -16,7 +16,7 @@ public class RowValidnessClass {
      * @throws RuntimeException If the line does not end with a valid suffix.
      */
     public static void check_suffixes(String line, int lineCounter) throws RuntimeException {
-        Pattern pattern = Pattern.compile("//.*|.*[;{}]\\s*$|\\s*");
+        Pattern pattern = Pattern.compile(".*[;{}]\\s*$");
         Matcher mac = pattern.matcher(line);
         if (!mac.matches()) {
             throw new RuntimeException("ERROR in line " + lineCounter + " not supported comment value!");
@@ -36,5 +36,13 @@ public class RowValidnessClass {
             throw new RuntimeException("ERROR in line " + lineCounter + " not supported comment value " +
                     "in the middle of the line!");
         }
+    }
+
+//    functions for function processing
+
+    public static boolean isStartFunction(String line) throws RuntimeException {
+        Pattern pattern = Pattern.compile("\\s*void.*");
+        Matcher matcher = pattern.matcher(line);
+        return matcher.matches();
     }
 }
