@@ -45,4 +45,10 @@ public class RowValidnessClass {
         Matcher matcher = pattern.matcher(line);
         return matcher.matches();
     }
+
+    public static boolean isInMethodAssignment() {
+//        Pattern pat = new Pattern("int|double|boolean|char|String\\s+[a-zA-Z]\\w*\\s+= \\s+");
+//        Matcher matcher =
+        return true;
+    }
 }

@@ -317,16 +317,20 @@ public class FileProcessor{
             line = line.trim();
 
             // Handle braces
-            if (line.contains("{")) braceBalance++;
-            if (line.contains("}")) braceBalance--;
+            if (line.contains("{"))
+                braceBalance++;
+            if (line.contains("}"))
+                braceBalance--;
 
             if (braceBalance < 0) {
                 throw new RuntimeException("Unmatched closing brace.");
             }
 
             // Validate line content
+//            todo
             if (line.startsWith("if") || line.startsWith("while")) {
-                validateConditionalBlock(line, bodyLines, localVariables);
+//                validateConditionalBlock(line, bodyLines, localVariables); // todo check later
+                continue;
             } else if (line.startsWith("return")) {
                 // Ensure return is handled at the end of the method todo?
                 continue;
@@ -354,7 +358,7 @@ public class FileProcessor{
     private void validateLine(String line, Map<String, Variable<?>> localVariables) {
         if (line.matches(".*;")) { // todo maybe redundant
             // todo maybe need to add validation for line valid structure
-            if (line.contains("=")) { // todo, change to: valid it is a valid assignment
+            if (RowValidnessClass.isInMethodAssignment()) { // todo, change to: valid it is a validassignment from here
                 validateAssignment(line, localVariables);
             } else if (line.matches("(int|double|boolean|char|String).*")) {
                 validateVariableDeclaration(line, localVariables);
