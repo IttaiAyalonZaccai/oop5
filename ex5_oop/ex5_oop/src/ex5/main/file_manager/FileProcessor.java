@@ -42,9 +42,10 @@ public class FileProcessor{
         Pattern pattern = Pattern.compile("//.*|\\s*");
         linesArray.removeIf(line1 -> pattern.matcher(line1).matches());
         linesNumber = linesArray.size();
-        checkLineValidity();
+        preprocessCheckLineValidity();
     }
 
+//    todo may be delete function
     /**
      * Retrieves the line at the specified index.
      *
@@ -60,7 +61,7 @@ public class FileProcessor{
      *
      * @throws IOException If an I/O error occurs during the process.
      */
-    public void checkLineValidity() throws IOException {
+    public void preprocessCheckLineValidity() throws IOException {
         String line;
         for (int lineIndex = 0; lineIndex < linesNumber; lineIndex++) {
             line = linesArray.get(lineIndex);
@@ -335,7 +336,7 @@ public class FileProcessor{
                 // Ensure return is handled at the end of the method todo?
                 continue;
             } else {
-                validateLine(line, localVariables);
+                validateMethodLine(line, localVariables);
             }
         }
 
@@ -355,7 +356,8 @@ public class FileProcessor{
         // Nested blocks validation would happen recursively in validateMethodBody
     }
 
-    private void validateLine(String line, Map<String, Variable<?>> localVariables) {
+    private void validateMethodLine(String line, Map<String, Variable<?>> localVariables) {
+
         if (line.matches(".*;")) { // todo maybe redundant
             // todo maybe need to add validation for line valid structure
             if (RowValidnessClass.isInMethodAssignment()) { // todo, change to: valid it is a validassignment from here
