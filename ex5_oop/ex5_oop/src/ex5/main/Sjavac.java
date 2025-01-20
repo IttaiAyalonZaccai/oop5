@@ -19,7 +19,7 @@ public class Sjavac {
         try (
                 FileReader fileReader = new FileReader(path);
                 BufferedReader bufferedReader = new BufferedReader(fileReader)
-            ) {
+        ) {
             // PreProcess:
             fileProcessor = new FileProcessor(bufferedReader);
             fileProcessor.validAndCreateGlobalMap();

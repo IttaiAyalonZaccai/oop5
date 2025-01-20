@@ -19,7 +19,7 @@ public class RowValidnessClass {
         Pattern pattern = Pattern.compile(".*[;{}]\\s*$");
         Matcher mac = pattern.matcher(line);
         if (!mac.matches()) {
-            throw new RuntimeException("ERROR line does not end with :}{");
+            throw new RuntimeException("ERROR in line " + lineCounter + " not supported comment value!");
         }
     }
     /**
@@ -46,9 +46,18 @@ public class RowValidnessClass {
         return matcher.matches();
     }
 
-    public static boolean isInMethodAssignment() {
-//        Pattern pat = new Pattern("int|double|boolean|char|String\\s+[a-zA-Z]\\w*\\s+= \\s+");
-//        Matcher matcher =
-        return true;
+    public static boolean isInMethodAssignment(String string) {
+        // Regex pattern to match variable assignments inside a method
+        String regex = "^\\s*[a-zA-Z_]\\w*\\s*=\\s*.*;$";
+
+        // Compile the regex pattern
+        Pattern pattern = Pattern.compile(regex);
+
+        // Match the input string against the pattern
+        Matcher matcher = pattern.matcher(string);
+
+        // Return true if the input matches the assignment pattern
+        return matcher.matches();
     }
+
 }
