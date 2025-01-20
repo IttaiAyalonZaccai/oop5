@@ -171,7 +171,7 @@ public class FileProcessor{
             Variable<?> sourceVar = globalMap.get(value);
 
             // Check type compatibility
-            if (!isTypeCompatible(type, sourceVar.getType())) {
+            if (!type.equals(sourceVar.getType())) {
                 throw new RuntimeException("Type mismatch: Cannot assign " + sourceVar.getType() + " to " + type);
             }
 
@@ -224,7 +224,7 @@ public class FileProcessor{
             return true; // Null is compatible with all types
         }
 
-        switch (targetType) {
+        switch (targetType) { // todo try implementing without instanceof
             case "int":
                 return resolvedValue instanceof Integer;
             case "double":
@@ -330,7 +330,8 @@ public class FileProcessor{
             // Validate line content
 //            todo
             if (line.startsWith("if") || line.startsWith("while")) {
-//                validateConditionalBlock(line, bodyLines, localVariables); // todo check later
+//                Map<String, Variable<?>> newScopeVariables = new HashMap<>(currentScopeVariables);
+                validateConditionalBlock(line, bodyLines, localVariables);
                 continue;
             } else if (line.startsWith("return")) {
                 // Ensure return is handled at the end of the method todo?
@@ -351,26 +352,136 @@ public class FileProcessor{
             throw new RuntimeException("Invalid conditional block: " + line);
         }
         String condition = line.substring(line.indexOf('(') + 1, line.indexOf(')')).trim();
-//        validateCondition(condition, localVariables, globalMap); todo un-comment
+        validateCondition(condition, localVariables, globalMap); // write this function
 
         // Nested blocks validation would happen recursively in validateMethodBody
     }
 
-    private void validateMethodLine(String line, Map<String, Variable<?>> localVariables) {
+    private void validateCondition(String condition, Map<String, Variable<?>> localVariables, Map<String, Variable<?>> globalVariables) {
+        // Split condition by logical operators (|| or &&)
+        String[] subConditions = condition.split("\\|\\||&&");
 
-        if (line.matches(".*;")) { // todo maybe redundant
-            // todo maybe need to add validation for line valid structure
-            if (RowValidnessClass.isInMethodAssignment()) { // todo, change to: valid it is a validassignment from here
-                validateAssignment(line, localVariables);
-            } else if (line.matches("(int|double|boolean|char|String).*")) {
-                validateVariableDeclaration(line, localVariables);
-            } else {
-                validateMethodCall(line);
+        for (String subCondition : subConditions) {
+            subCondition = subCondition.trim();
+            if (subCondition.isEmpty()) {
+                throw new RuntimeException("Empty condition in: " + condition);
             }
-        } else {
-            throw new RuntimeException("Invalid line: " + line);
+
+            // Check if the subCondition is a literal (boolean, int, or double)
+            if (isBooleanLiteral(subCondition) || isNumericLiteral(subCondition)) {
+                continue;
+            }
+
+            // Check if the subCondition is a valid variable
+            if (localVariables.containsKey(subCondition)) {
+                Variable<?> variable = localVariables.get(subCondition);
+                if (!isValidConditionType(variable)) {
+                    throw new RuntimeException("Invalid variable type in condition: " + subCondition);
+                }
+            } else if (globalVariables.containsKey(subCondition)) {
+                Variable<?> variable = globalVariables.get(subCondition);
+                if (!isValidConditionType(variable)) {
+                    throw new RuntimeException("Invalid variable type in condition: " + subCondition);
+                }
+            } else {
+                throw new RuntimeException("Unknown variable or invalid literal in condition: " + subCondition);
+            }
         }
     }
+
+    // Utility method to check if a string is a boolean literal
+    private boolean isBooleanLiteral(String value) {
+        return "true".equals(value) || "false".equals(value);
+    }
+
+    // Utility method to check if a string is a numeric literal
+    private boolean isNumericLiteral(String value) {
+        try {
+            Double.parseDouble(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    // Utility method to check if a variable is of a valid type for a condition
+    private boolean isValidConditionType(Variable<?> variable) {
+        return "boolean".equals(variable.getType()) || "int".equals(variable.getType()) || "double".equals(variable.getType());
+    }
+
+
+
+    private void validateMethodLine(String line, Map<String, Variable<?>> localVariables) {
+        // Handle closing brace
+        if (line.equals("}")) {
+            return; // Valid line, nothing to validate
+        }
+
+        // Check for variable declaration
+        String validTypes = "int|double|boolean|char|String";
+        String variableNamePattern = "[a-zA-Z_][a-zA-Z0-9_]*";
+        String valuePattern = ".*"; // Placeholder for further validation
+        String declarationPattern = String.format(
+                "^(final\\s+)?(%s)\\s+(%s(\\s*=\\s*%s)?(\\s*,\\s*%s(\\s*=\\s*%s)?)*)\\s*;$",
+                validTypes, variableNamePattern, valuePattern, variableNamePattern, valuePattern
+        );
+
+        Pattern declarationRegex = Pattern.compile(declarationPattern);
+        Matcher declarationMatcher = declarationRegex.matcher(line);
+
+        if (declarationMatcher.matches()) {
+            validateVariableDeclaration(line, localVariables);
+            return;
+        }
+
+        // Check for variable assignment
+        String assignmentPattern = String.format(
+                "^%s\\s*=\\s*%s\\s*;$",
+                variableNamePattern, valuePattern
+        );
+
+        Pattern assignmentRegex = Pattern.compile(assignmentPattern);
+        Matcher assignmentMatcher = assignmentRegex.matcher(line);
+
+        if (assignmentMatcher.matches()) {
+            validateAssignment(line, localVariables);
+            return;
+        }
+
+        // Check for method call
+        String methodCallPattern = String.format(
+                "^%s\\s*\\([^)]*\\)\\s*;$",
+                variableNamePattern
+        );
+
+        Pattern methodCallRegex = Pattern.compile(methodCallPattern);
+        Matcher methodCallMatcher = methodCallRegex.matcher(line);
+
+        if (methodCallMatcher.matches()) {
+            validateMethodCall(line);
+            return;
+        }
+
+        // If none of the above matched, the line is invalid
+        throw new RuntimeException("Invalid line: " + line);
+    }
+
+
+//    private void validateMethodLine(String line, Map<String, Variable<?>> localVariables) {
+//
+//        if (line.matches(".*;")) { // todo maybe redundant
+//            // todo maybe need to add validation for line valid structure
+//            if (RowValidnessClass.isInMethodAssignment()) { // todo, change to: valid it is a validassignment from here
+//                validateAssignment(line, localVariables);
+//            } else if (line.matches("(int|double|boolean|char|String).*")) {
+//                validateVariableDeclaration(line, localVariables);
+//            } else {
+//                validateMethodCall(line);
+//            }
+//        } else {
+//            throw new RuntimeException("Invalid line: " + line);
+//        }
+//    }
 
     private void validateAssignment(String line, Map<String, Variable<?>> localVariables) {
         String[] parts = line.split("\\s*=\\s*");
@@ -382,7 +493,7 @@ public class FileProcessor{
             throw new RuntimeException("Undefined variable: " + variableName);
         }
 
-        Object resolvedValue = resolveValue(value, localVariables, globalMap);
+        Object resolvedValue = resolveValue(value, localVariables);
 
         // Dynamically check type compatibility
         if (!isTypeCompatible(variable.getType(), resolvedValue)) {
@@ -400,7 +511,7 @@ public class FileProcessor{
         }
     }
 
-    private Object resolveValue(String value, Map<String, Variable<?>> localVariables, Map<String, Variable<?>> globalMap) {
+    private Object resolveValue(String value, Map<String, Variable<?>> localVariables) {
         if (localVariables.containsKey(value)) {
             return localVariables.get(value).getValue();
         }
@@ -411,7 +522,8 @@ public class FileProcessor{
     }
 
     private void validateVariableDeclaration(String line, Map<String, Variable<?>> localVariables) {
-        // Regex for variable declaration (with or without initialization)
+        // todo i think this is redundant (until "Extract components from the match):
+        // Define regex patterns for components
         String validTypes = "int|double|boolean|char|String";
         String variableNamePattern = "[a-zA-Z_][a-zA-Z0-9_]*";
         String valuePattern = ".*"; // Placeholder for further validation
@@ -420,32 +532,58 @@ public class FileProcessor{
                 validTypes, variableNamePattern, valuePattern, variableNamePattern, valuePattern
         );
 
-        if (!line.matches(declarationPattern)) {
+        // Match the declaration line
+        Pattern pattern = Pattern.compile(declarationPattern);
+        Matcher matcher = pattern.matcher(line);
+
+        if (!matcher.matches()) {
             throw new RuntimeException("Invalid variable declaration: " + line);
         }
 
-        // Extract components
-        String[] parts = line.split("\\s+", 3);
-        boolean isFinal = parts[0].equals("final");
-        String type = isFinal ? parts[1] : parts[0];
-        String variables = isFinal ? parts[2] : parts[1];
+        // Extract components from the match
+        boolean isFinal = matcher.group(1) != null; // Check if "final" is present
+        String type = matcher.group(2); // Variable type
+        String variables = matcher.group(3); // All declared variables in the line
 
-        // Handle multiple variables separated by commas
-        String[] declarations = variables.split("\\s*,\\s*");
-        for (String declaration : declarations) {
-            String[] nameValue = declaration.split("\\s*=\\s*");
-            String name = nameValue[0];
+        // Process each variable in the declaration
+        String[] variableDeclarations = variables.split("\\s*,\\s*");
+        for (String varDeclaration : variableDeclarations) {
+            String[] nameAndValue = varDeclaration.split("\\s*=\\s*");
+            String variableName = nameAndValue[0].trim();
+            String value = nameAndValue.length > 1 ? nameAndValue[1].trim() : null;
 
-            if (localVariables.containsKey(name)) {
-                throw new RuntimeException("Duplicate variable name in local scope: " + name);
+            // Check for duplicate variable names in the local scope
+            if (localVariables.containsKey(variableName)) {
+                throw new RuntimeException("Duplicate variable name in local scope: " + variableName);
             }
 
+            // Validate the value (if any) and determine its resolved type
             Object resolvedValue = null;
-            if (nameValue.length > 1) {
-                resolvedValue = resolveValue(nameValue[1], localVariables, null);
+            if (value != null) {
+                if (localVariables.containsKey(value)) {
+                    // Value is a reference to a local variable
+                    Variable<?> sourceVar = localVariables.get(value);
+//                    if (!isTypeCompatible(type, sourceVar.getType())) {
+                    if (!type.equals(sourceVar.getType())) {
+                            throw new RuntimeException("Type mismatch: Cannot assign " + sourceVar.getType() + " to " + type);
+                        }
+                    resolvedValue = sourceVar.getValue();
+                } else if (globalMap.containsKey(value)) {
+                    // Value is a reference to a global variable
+                    Variable<?> sourceVar = globalMap.get(value);
+//                    if (!isTypeCompatible(type, sourceVar.getType())) {
+                    if (!type.equals(sourceVar.getType())) {
+                        throw new RuntimeException("Type mismatch: Cannot assign " + sourceVar.getType() + " to " + type);
+                    }
+                    resolvedValue = sourceVar.getValue();
+                } else {
+                    // Value is a literal
+                    resolvedValue = validateLiteral(value);
+                }
             }
 
-            localVariables.put(name, new Variable<>(resolvedValue, type, isFinal));
+            // Add the variable to the local scope
+            localVariables.put(variableName, new Variable<>(resolvedValue, type, isFinal));
         }
     }
 
@@ -466,7 +604,7 @@ public class FileProcessor{
             String[] args = arguments.split("\\s*,\\s*");
             for (String arg : args) {
                 // Validate each argument (assumes resolveValue validates types)
-                resolveValue(arg, new HashMap<>(), new HashMap<>());
+                resolveValue(arg, new HashMap<>());
             }
         }
     }
@@ -587,6 +725,9 @@ public class FileProcessor{
                 String methodName = extractMethodName(line);
                 // Validate the method
                 validateMethod(methodLines, methodName);
+            }
+            else{
+                currentLine++;
             }
         }
         return 0; // All methods are valid

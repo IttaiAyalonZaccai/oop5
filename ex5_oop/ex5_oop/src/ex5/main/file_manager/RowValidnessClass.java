@@ -19,7 +19,7 @@ public class RowValidnessClass {
         Pattern pattern = Pattern.compile(".*[;{}]\\s*$");
         Matcher mac = pattern.matcher(line);
         if (!mac.matches()) {
-            throw new RuntimeException("ERROR in line " + lineCounter + " not supported comment value!");
+            throw new RuntimeException("ERROR line does not end with :}{");
         }
     }
     /**
