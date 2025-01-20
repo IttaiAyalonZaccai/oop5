@@ -330,6 +330,7 @@ public class FileProcessor{
             // Validate line content
 //            todo
             if (line.startsWith("if") || line.startsWith("while")) {
+//                Map<String, Variable<?>> newScopeVariables = new HashMap<>(currentScopeVariables);
                 validateConditionalBlock(line, bodyLines, localVariables);
                 continue;
             } else if (line.startsWith("return")) {
@@ -530,12 +531,15 @@ public class FileProcessor{
                 "^(final\\s+)?(%s)\\s+(%s(\\s*=\\s*%s)?(\\s*,\\s*%s(\\s*=\\s*%s)?)*)\\s*;$",
                 validTypes, variableNamePattern, valuePattern, variableNamePattern, valuePattern
         );
+
         // Match the declaration line
         Pattern pattern = Pattern.compile(declarationPattern);
         Matcher matcher = pattern.matcher(line);
+
         if (!matcher.matches()) {
             throw new RuntimeException("Invalid variable declaration: " + line);
         }
+
         // Extract components from the match
         boolean isFinal = matcher.group(1) != null; // Check if "final" is present
         String type = matcher.group(2); // Variable type
@@ -556,12 +560,28 @@ public class FileProcessor{
             // Validate the value (if any) and determine its resolved type
             Object resolvedValue = null;
             if (value != null) {
-                resolvedValue = validateLiteral(value);
-//                resolvedValue = resolveValue(value, localVariables); // Null for global map in local scope
-                if (!isTypeCompatible(type, resolvedValue)) {
-                    throw new RuntimeException("Type mismatch for variable: " + variableName);
+                if (localVariables.containsKey(value)) {
+                    // Value is a reference to a local variable
+                    Variable<?> sourceVar = localVariables.get(value);
+//                    if (!isTypeCompatible(type, sourceVar.getType())) {
+                    if (!type.equals(sourceVar.getType())) {
+                            throw new RuntimeException("Type mismatch: Cannot assign " + sourceVar.getType() + " to " + type);
+                        }
+                    resolvedValue = sourceVar.getValue();
+                } else if (globalMap.containsKey(value)) {
+                    // Value is a reference to a global variable
+                    Variable<?> sourceVar = globalMap.get(value);
+//                    if (!isTypeCompatible(type, sourceVar.getType())) {
+                    if (!type.equals(sourceVar.getType())) {
+                        throw new RuntimeException("Type mismatch: Cannot assign " + sourceVar.getType() + " to " + type);
+                    }
+                    resolvedValue = sourceVar.getValue();
+                } else {
+                    // Value is a literal
+                    resolvedValue = validateLiteral(value);
                 }
             }
+
             // Add the variable to the local scope
             localVariables.put(variableName, new Variable<>(resolvedValue, type, isFinal));
         }
