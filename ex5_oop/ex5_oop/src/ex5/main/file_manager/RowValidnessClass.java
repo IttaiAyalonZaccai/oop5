@@ -60,4 +60,15 @@ public class RowValidnessClass {
         return matcher.matches();
     }
 
+    public static void checkLineFormat(String line, int lineIndex) throws RuntimeException {
+        // is Declaration fomrat
+        if (line.matches("^\\s*final\\s+[a-zA-Z_]\\w*\\s+[a-zA-Z_]\\w*\\s*;$")) {}
+
+        // is Assignment format
+
+        // is If-While format
+        if (line.matches("^\\s*[a-zA-Z_]\\w*\\s*=\\s*[a-zA-Z_]\\w*\\s*;$")) {}
+
+        // is
+    }
 }

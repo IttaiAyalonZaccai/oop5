@@ -66,7 +66,7 @@ public class FileProcessor{
             try {
                 RowValidnessClass.check_suffixes(line, lineIndex);
                 RowValidnessClass.checkMiddleComments(line, lineIndex);
-//                checkIfLineIsCommentOrBlank(line, lineIndex);
+                RowValidnessClass.checkLineFormat(line, lineIndex);
             } catch (RuntimeException e) {
                 System.out.println(e.getMessage());
                 System.exit(SYNTAX_ERROR_EXIT_CODE);
