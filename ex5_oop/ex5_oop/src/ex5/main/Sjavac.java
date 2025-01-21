@@ -31,12 +31,6 @@ public class Sjavac {
             e.printStackTrace();
             System.exit(IO_ERROR_EXIT_CODE);
         }
-
-        // todo: Step 2: Validation Check for Entire File.
     }
-
-
 // todo: make sure there are no arrays and operators 5.1
-//                }
-
 }

@@ -17,8 +17,6 @@ public class FileProcessor{
     //    constants
     private final List<String> linesArray;
     private final String VALID_TYPES = "int|double|boolean|char|String";
-
-    private List<Integer> ignoredLinesIndexes = new ArrayList<>();
     private int linesNumber = 0;
     private HashMap<String, Variable<?>> globalMap = new HashMap<>();
     private HashMap<String, List<Map<String, Variable<Object>>>> functionsMap = new HashMap<>();
@@ -170,7 +168,8 @@ public class FileProcessor{
             Variable<?> sourceVar = globalMap.get(value);
 
             // Check type compatibility
-            if (!isTypeCompatible(type, sourceVar.getType())) {
+//            if (!isTypeCompatible(type, sourceVar.getType())) {
+            if (!type.equals(sourceVar.getType())) {
                 throw new RuntimeException("Type mismatch: Cannot assign " + sourceVar.getType() + " to " + type);
             }
 
@@ -253,7 +252,8 @@ public class FileProcessor{
             addMethodParametersToLocalVariables(methodName, localVariables);
 
             // Step 2: Validate Method Body
-            validateMethodBody(methodLines.subList(1, methodLines.size() - 1), localVariables, true);
+            validateMethodBody(methodLines.subList(1, methodLines.size() - 1), localVariables,
+                    new HashMap<>(), true);
             // Step 3: Ensure Method Ends with Valid Return
             validateReturnStatement(methodLines.get(methodLines.size() - 2).trim());
         } catch (RuntimeException e) {
@@ -308,7 +308,9 @@ public class FileProcessor{
         }
     }
 
-    private void validateMethodBody(List<String> bodyLines, Map<String, Variable<?>> localVariables, boolean expectReturn)
+    private void validateMethodBody(List<String> bodyLines, Map<String, Variable<?>> localVariables,
+                                    Map<String, Variable<?>> outerVariables,
+                                    boolean expectReturn)
             throws RuntimeException {
         int braceBalance = 0;
         int currentLine = 0;
@@ -331,7 +333,7 @@ public class FileProcessor{
             } else if (line.startsWith("return")) {
                 currentLine++;
             } else {
-                validateMethodLine(line, localVariables);
+                validateMethodLine(line, localVariables, outerVariables);
                 currentLine++;
             }
         }
@@ -364,7 +366,7 @@ public class FileProcessor{
         int currentLine = bodyLines.indexOf(line) + 1;  // Start processing from the next line
 
         // Create a new local scope by copying the existing variables
-        Map<String, Variable<?>> blockScope = new HashMap<>(localVariables);
+        Map<String, Variable<?>> outerVariables = new HashMap<>(localVariables);
         List<String> blockLines = new ArrayList<>();
 
         while (currentLine < bodyLines.size()) {
@@ -378,7 +380,7 @@ public class FileProcessor{
             // If we close the block, validate its contents recursively without requiring return
             if (braceBalance == 0) {
                 blockLines.remove(blockLines.size() - 1);
-                validateMethodBody(blockLines, blockScope, false);
+                validateMethodBody(blockLines, new HashMap<>(), outerVariables, false);
                 return currentLine - bodyLines.indexOf(line) + 1;  // Number of lines processed
             }
 
@@ -387,8 +389,6 @@ public class FileProcessor{
 
         throw new RuntimeException("Unmatched opening brace for conditional block.");
     }
-
-
 
     private void validateCondition(String condition, Map<String, Variable<?>> localVariables, Map<String, Variable<?>> globalVariables) {
         // Split condition by logical operators (|| or &&)
@@ -443,10 +443,11 @@ public class FileProcessor{
     }
 
 
-    private void validateMethodLine(String line, Map<String, Variable<?>> localVariables) {
+    private void validateMethodLine(String line, Map<String, Variable<?>> localVariables, Map<String,
+            Variable<?>> outerVariables) {
         if (line.matches(".*;")) { // todo maybe redundant
             if (RowValidnessClass.isInMethodAssignment(line)) {
-                validateAssignment(line, localVariables);
+                validateAssignment(line, localVariables, outerVariables);
             } else if (line.matches("(int|double|boolean|char|String).*")) {
                 validateVariableDeclaration(line, localVariables);
             } else {
@@ -457,14 +458,21 @@ public class FileProcessor{
         }
     }
 
-    private void validateAssignment(String line, Map<String, Variable<?>> localVariables) {
+    private void validateAssignment(String line, Map<String, Variable<?>> localVariables, Map<String,
+            Variable<?>> outerVariables) {
         String[] parts = line.split("\\s*=\\s*");
         String variableName = parts[0].trim();
         String value = parts[1].replace(";", "").trim();
 
-        Variable<?> variable = localVariables.getOrDefault(variableName, globalMap.get(variableName));
+
+        Variable<?> variable = localVariables.getOrDefault(
+                variableName,
+                outerVariables.getOrDefault(
+                        variableName,
+                        globalMap.get(variableName))
+                );
+
         if (variable == null) {
-            // todo doesnt hanldes assignment inside a conditional block
             throw new RuntimeException("Undefined variable: " + variableName);
         }
 
