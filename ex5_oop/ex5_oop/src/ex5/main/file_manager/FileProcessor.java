@@ -109,7 +109,6 @@ public class FileProcessor{
         if (scopeLevel != 0) {
             throw new RuntimeException("Unmatched opening brace(s) detected.");
         }
-        System.out.println();
     }
 
     private void validateAndAddGlobalVariable(String line) throws RuntimeException {
@@ -255,7 +254,6 @@ public class FileProcessor{
 
             // Step 2: Validate Method Body
             validateMethodBody(methodLines.subList(1, methodLines.size() - 1), localVariables, true);
-            System.out.println();
             // Step 3: Ensure Method Ends with Valid Return
             validateReturnStatement(methodLines.get(methodLines.size() - 2).trim());
         } catch (RuntimeException e) {

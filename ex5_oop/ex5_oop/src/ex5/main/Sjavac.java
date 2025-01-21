@@ -24,7 +24,6 @@ public class Sjavac {
             fileProcessor = new FileProcessor(bufferedReader);
             fileProcessor.validAndCreateGlobalMap();
             fileProcessor.getAllFunctionsNames();
-            System.out.println();
             // validate file
             fileProcessor.processAllMethods();
         }
