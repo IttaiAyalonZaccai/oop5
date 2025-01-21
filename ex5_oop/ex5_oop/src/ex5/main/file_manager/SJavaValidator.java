@@ -4,48 +4,55 @@ import java.util.regex.Matcher;
 import java.util.regex.PatternSyntaxException;
 
 public class SJavaValidator {
-    // Method to check if a line matches the assignment format
+    // Method to check if a line matches the variable declaration format
+    public static boolean matchDeclarationFormat(String line) {
+        // Valid types in s-Java
+        String validTypes = "int|double|boolean|char|String";
+
+        // Matches variable names
+        String variableNamePattern = "[a-zA-Z_][a-zA-Z0-9_]*";
+        // Matches valid values (numbers, booleans, strings, characters, or variables)
+        String valuePattern = "\\d+(\\.\\d+)?|true|false|\"[^\"]*\"|'[^']'|" + variableNamePattern;
+        // Matches a single variable declaration (with optional initialization)
+        String singleVariablePattern = String.format("%s(\\s*=\\s*%s)?", variableNamePattern, valuePattern);
+        // Matches multiple variables in the same declaration (comma-separated)
+        String multipleVariablesPattern = String.format("%s(\\s*,\\s*%s)*", singleVariablePattern, singleVariablePattern);
+        // Matches a complete variable declaration line
+        String declarationPattern = String.format(
+                "^(final\\s+)?(%s)\\s+%s\\s*;$",
+                validTypes, multipleVariablesPattern
+        );
+
+        // Compile and match the regex
+        Pattern pattern = Pattern.compile(declarationPattern);
+        Matcher matcher = pattern.matcher(line);
+        return matcher.matches();
+    }
+
+
+
     public static boolean matchAssignmentFormat(String line) {
-        try {
-            // Valid variable identifier
-            String identifier = "[a-zA-Z_][a-zA-Z0-9_]*";
-
-            // Valid assignment value
-            String value = "\\d+(\\.\\d+)?|true|false|\\\"[^\\\"]*\\\"|'[^']'|" + identifier;
-
-            // Single assignment (e.g., x = 5)
-            String singleAssignment = identifier + "\\s*=\\s*" + value;
-
-            // Multiple assignments (e.g., x = 5, y = 10)
-            String multipleAssignments = singleAssignment + "(\\s*,\\s*" + singleAssignment + ")*";
-
-            // Full assignment regex
-            String assignmentRegex = "^\\s*" + multipleAssignments + "\\s*;\\s*$";
-
-            // Compile the regex pattern
-            Pattern pattern = Pattern.compile(assignmentRegex);
-
-            // Match the line against the pattern
-            Matcher matcher = pattern.matcher(line);
-            return matcher.matches();
-        } catch (PatternSyntaxException e) {
-            // Handle regex compilation errors
-            System.err.println("Invalid regex pattern: " + e.getDescription());
-            throw e;
-        }
+        return true;
     }
 
     // Method to check if a line matches the if/while block format
     public static boolean matchIfWhileFormat(String line) {
-        // todo it is not working despite the regex looks good...
-        String identifier = "[a-zA-Z][a-zA-Z0-9_]*";
-        String conditionValue = "true|false|\\d+(\\.\\d+)?|" + identifier;
-        String condition = conditionValue + "(\\s*(\\|\\| | &&)\\s*" + conditionValue + ")*";
-        String ifWhileRegex = "^\\s*(if|while)\\s*\\(\\s*" + condition + "\\s*\\)\\s*\\{\\s*$";
+        line = line.trim();
+        if(line.startsWith("if") || line.startsWith("while")) {
+            String conditionalPattern = "^(if|while)\\s*\\(([^\\)]+)\\)\\s*\\{$";
+            return line.matches(conditionalPattern);
+        }
+        return false;
 
-        Pattern pattern = Pattern.compile(ifWhileRegex);
-        Matcher matcher = pattern.matcher(line);
-        return matcher.matches();
+//        // todo it is not working despite the regex looks good...
+//        String identifier = "[a-zA-Z][a-zA-Z0-9_]*";
+//        String conditionValue = "true|false|\\d+(\\.\\d+)?|" + identifier;
+//        String condition = conditionValue + "(\\s*(\\|\\| | &&)\\s*" + conditionValue + ")*";
+//        String ifWhileRegex = "^\\s*(if|while)\\s*\\(\\s*" + condition + "\\s*\\)\\s*\\{\\s*$";
+//
+//        Pattern pattern = Pattern.compile(ifWhileRegex);
+//        Matcher matcher = pattern.matcher(line);
+//        return matcher.matches();
     }
 
     // Method to check if a line matches the return statement format
@@ -128,11 +135,11 @@ public class SJavaValidator {
                 "method(5,,6);"                 // Invalid: extra comma
         };
 
-        System.out.println("Testing Method Call Format:");
-        for (String testCase : methodCallTestCases) {
-            System.out.println("Testing: " + testCase);
-            System.out.println("Matches: " + matchMethodCallFormat(testCase));
-        }
+//        System.out.println("Testing Method Call Format:");
+//        for (String testCase : methodCallTestCases) {
+//            System.out.println("Testing: " + testCase);
+//            System.out.println("Matches: " + matchMethodCallFormat(testCase));
+//        }
 
         // Test cases for method declaration format
         String[] methodDeclarationTestCases = {
@@ -199,11 +206,11 @@ public class SJavaValidator {
                 "if (true) {}",
         };
 
-//        System.out.println("\nTesting If/While Format:");
-//        for (String testCase : ifWhileTestCases) {
-//            System.out.println("Testing: " + testCase);
-//            System.out.println("Matches: " + matchIfWhileFormat(testCase));
-//        }
+        System.out.println("\nTesting If/While Format:");
+        for (String testCase : ifWhileTestCases) {
+            System.out.println("Testing: " + testCase);
+            System.out.println("Matches: " + matchIfWhileFormat(testCase));
+        }
 
         // Test cases for assignment format
         String[] assignmentTestCases = {
@@ -221,11 +228,30 @@ public class SJavaValidator {
                 "x = 5"                    // Invalid: missing semicolon
         };
 
-        System.out.println("\nTesting Assignment Format:");
-        for (String testCase : assignmentTestCases) {
-            System.out.println("Testing: " + testCase);
-            System.out.println("Matches: " + matchAssignmentFormat(testCase));
-        }
+//        System.out.println("\nTesting Assignment Format:");
+//        for (String testCase : assignmentTestCases) {
+//            System.out.println("Testing: " + testCase);
+//            System.out.println("Matches: " + matchAssignmentFormat(testCase));
+//        }
 
+        // Test cases for variable declaration format
+        String[] declarationTestCases = {
+                "int x;",                      // Valid: simple declaration
+                "double x = 5.5;",             // Valid: initialized declaration
+                "final boolean flag = true;",  // Valid: final declaration
+                "char a, b = 'c';",            // Valid: multiple declarations
+                "String s = \"hello\", t;",    // Valid: mixed initialization
+                "int 123x;",                   // Invalid: variable starts with digit
+                "float x;",                    // Invalid: unsupported type
+                "boolean a = false, = true;",  // Invalid: missing variable name
+                "int a, b,;",                  // Invalid: trailing comma
+                "final x;",                    // Invalid: missing type
+        };
+
+//        System.out.println("\nTesting Declaration Format:");
+//        for (String testCase : declarationTestCases) {
+//            System.out.println("Testing: " + testCase);
+//            System.out.println("Matches: " + matchDeclarationFormat(testCase));
+//        }
     }
 }

@@ -76,38 +76,34 @@ public class RowValidnessClass {
 
     public static void checkLineFormat(String line, int lineIndex) {
         try {
-
 //            // is Declaration format:
 //            if (matchDeclarationFormat()) {
 //                return;
 //            }
-//            // is Assignment format:
-//            if (matchAssignmentFormat()) {
-//                return;
-//            }
+            // is Assignment format:
+            if (SJavaValidator.matchAssignmentFormat(line)) {
+                return;
+            }
 //            // is If-While format:
-//            if (matchIfWhileFormat()) {
-//            ^\s*(if|while)\s*\(\s*([a-zA-Z][a-zA-Z0-9_]*|true|false|\-?\d+(\.\d+)?)(\s*(\|\||&&)\s*([a-zA-Z][a-zA-Z0-9_]*|true|false|\-?\d+(\.\d+)?))*\s*\)\s*\{\s*$
-//                return;
-//            }
+            if (SJavaValidator.matchIfWhileFormat(line)) {
+                return;
+            }
 //            // is Method declaration format:
-//            if (matchMethodDeclarationFormat()) {
-//                return;
-//            }
+            if (SJavaValidator.matchMethodDeclarationFormat(line)) {
+                return;
+            }
 //            // is Method call format:
-//            if (matchMethodCallFormat()) {
-//                return;
-//            }
-//            // is End-of-Scope format:
-//            if (matchEndOfScopeFormat()) {
-//                ^\s*}\s*$
-//                return;
-//            }
-//            // is Return format:
-//            if (matchReturnFormat()) {
-//                ^\s*return\s*;\s*$
-//                return;
-//            }
+            if (SJavaValidator.matchMethodCallFormat(line)) {
+                return;
+            }
+            // is End-of-Scope format:
+            if (SJavaValidator.matchEndOfScopeFormat(line)) {
+                return;
+            }
+            // is Return format:
+            if (SJavaValidator.matchReturnFormat(line)) {
+                return;
+            }
             throw new RuntimeException("ERROR in line " + lineIndex + " invalid line Format");
         } catch (RuntimeException e) {
             System.out.println(e.getMessage());
