@@ -12,12 +12,97 @@ import java.util.regex.Pattern;
 
 import static ex5.main.Sjavac.SYNTAX_ERROR_EXIT_CODE;
 
+/**
+ * Class: FunctionBodyValidator
+ *
+ * Responsible for validating the body of functions written in s-Java code.
+ * Ensures proper syntax, valid method structure, and correct usage of variables,
+ * assignments, and control structures.
+ */
 public class FunctionBodyValidator {
 
+    public static final String METHOD_CALL_FORMAT = "[a-zA-Z_][a-zA-Z0-9_]*\\s*\\(([^\\)\\(]*)\\)\\s*;";
+    public static final String INVALID_METHOD_CALL = "Invalid method call: ";
+    public static final String EXCEPTION_UNDEFINED_METHOD = "Undefined method: ";
+    public static final String REGEX_WORD_WORD = "\\s*,\\s*";
+    public static final char CHARACTER_CLOSING_REGULAR_BRACE = ')';
+    public static final String DUPLICATE_VARIABLE_NAME_IN_LOCAL_SCOPE =
+            "Duplicate variable name in local scope: ";
+    public static final String REGEX_WORD_SPACE_WORD = "\\s*=\\s*";
+    public static final String INVALID_VARIABLE_DECLARATION_EXCEPTION = "Invalid variable declaration: ";
+    public static final String FINAL_KEY_WORD = "final";
+    public static final String SPLIT_FORMAT = "\\s+";
+    public static final int SPLIT_LIMIT = 3;
+    public static final int INT1 = 1;
+    public static final int INT2 = 2;
+    // Regex for variable declaration (with or without initialization)
+    public static final String VALID_TYPES = "int|double|boolean|char|String";
+    public static final String VARIABLE_NAME_PATTERN = "[a-zA-Z_][a-zA-Z0-9_]*";
+    public static final String VALUE_PATTERN = ".*"; // Placeholder for further validation
+    public static final String DECLERATION_PATTERN = String.format(
+            "^(final\\s+)?(%s)\\s+(%s(\\s*=\\s*%s)?(\\s*,\\s*%s(\\s*=\\s*%s)?)*)\\s*;$",
+            VALID_TYPES, VARIABLE_NAME_PATTERN, VALUE_PATTERN, VARIABLE_NAME_PATTERN, VALUE_PATTERN
+    );
+
+    public static final char CHAR_OPENING_REGULAR_BRACE = '(';
+    public static final String METHOD_NOT_FOUND_IN_FUNCTIONS_MAP = "Method not found in functionsMap: ";
+    public static final String CLOSING_CURLY_BARCE = "}";
+    public static final String CLOSING_CURLY_BRACE = "{";
+    public static final String INVALID_METHOD_DECLARATION = "Invalid method declaration: ";
+    public static final String METHOD_DECLERATION_PATTERN =
+            "void\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*\\(.*\\)\\s*\\{";
+    public static final String UNMATCHED_CLOSING_BRACE = "Unmatched closing brace.";
+    public static final String IF = "if";
+    public static final String WHILE = "while";
+    public static final String RETURN = "return";
+    public static final String UNMATCHED_OPENING_BRACE = "Unmatched opening brace.";
+    public static final String RETURN_AND_END_LINE = "return;";
+    public static final String MISSING_RETURN_STATEMENT_AT_THE_END_OF_THE_METHOD =
+            "Missing return statement at the end of the method.";
+    public static final String CONDITIONAL_PATTERN = "^(if|while)\\s*\\(([^\\)]+)\\)\\s*\\{$";
+    public static final String INVALID_CONDITIONAL_BLOCK = "Invalid conditional block: ";
+    public static final String UNMATCHED_OPENING_BRACE_FOR_CONDITIONAL_BLOCK =
+            "Unmatched opening brace for conditional block.";
+    public static final String SPLIT_PATTERN_FOR_VALIDATE_CONDITION = "\\|\\||&&";
+    public static final String EMPTY_CONDITION_ECXEPTION = "Empty condition in: ";
+    public static final String INVALID_VARIABLE_TYPE_EXCEPTION = "Invalid variable type in condition: ";
+    public static final String UNKNOWN_VARIABLE_OR_INVALID_LITERAL_IN_CONDITION_EXCEPTION =
+            "Unknown variable or invalid literal in condition: ";
+    public static final String TRUE = "true";
+    public static final String FALSE = "false";
+    public static final String BOOLEAN = "boolean";
+    public static final String INT = "int";
+    public static final String DOUBLE = "double";
+    public static final String INT_DOUBLE_BOOLEAN_CHAR_STRING = "(int|double|boolean|char|String).*";
+    public static final String INVALID_LINE = "Invalid line: ";
+    public static final String SENICOLON = ";";
+    public static final String EMPTY = "";
+    public static final String UNDEFINED_VARIABLE = "Undefined variable: ";
+    public static final String TYPE_MISMATCH_FOR_VARIABLE = "Type mismatch for variable: ";
+    public static final String CANNOT_ASSIGN_A_VALUE_TO_FINAL_VARIABLE =
+            "Cannot assign a value to final variable: ";
+    public static final String INT_PATTERN = "-?\\d+";
+    public static final String DOUBLE_PATTERN = "-?\\d*\\.\\d+|-?\\d+\\.\\d*";
+    public static final String TRUE_FALSE = "true|false";
+    public static final String CHAR_PATTERN = "'.'";
+    public static final String STRING_PATTERN = "\"[^\"]*\"";
+    public static final String INVALID_LITERAL_VALUE = "Invalid literal value: ";
+    public static final String INVALID_RETURN_STATEMENT = "Invalid return statement: ";
+    public static final String CHAR = "char";
+    public static final String STRING = "String";
+    public static final String UNKNOWN_TYPE = "Unknown type: ";
     private final List<String> linesArray;
     private final HashMap<String, Variable<?>> globalMap;
     private final HashMap<String, List<Map<String, Variable<Object>>>> functionsMap;
 
+
+    /**
+     * Constructor for FunctionBodyValidator
+     *
+     * @param linesArray   A list of lines representing the function body.
+     * @param globalMap    A map of global variables.
+     * @param functionsMap A map of all defined functions and their parameters.
+     */
     public FunctionBodyValidator(List<String> linesArray,
                                  HashMap<String, Variable<?>> globalMap,
                                  HashMap<String, List<Map<String, Variable<Object>>>> functionsMap) {
@@ -26,6 +111,9 @@ public class FunctionBodyValidator {
         this.functionsMap = functionsMap;
     }
 
+    /**
+     * Processes all methods in the lines array and validates their structure.
+     */
     public void processAllMethods() {
         int currentLine = 0;
         while (currentLine < linesArray.size()) {
@@ -48,15 +136,15 @@ public class FunctionBodyValidator {
 
     private String extractMethodName(String declarationLine) {
         // Regex to match the method declaration: void methodName(...)
-        String methodPattern = "void\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*\\(.*\\)\\s*\\{";
+        String methodPattern = METHOD_DECLERATION_PATTERN;
         Pattern pattern = Pattern.compile(methodPattern);
         Matcher matcher = pattern.matcher(declarationLine);
 
         if (matcher.matches()) {
-            return matcher.group(1); // Return the captured method name
+            return matcher.group(INT1); // Return the captured method name
         }
         // This shouldn't happen if prior validation is correct
-        throw new IllegalStateException("Invalid method declaration: " + declarationLine);
+        throw new IllegalStateException(INVALID_METHOD_DECLARATION + declarationLine);
     }
 
     private List<String> extractMethod(int startIndex) {
@@ -67,11 +155,11 @@ public class FunctionBodyValidator {
         for (int i = startIndex; i < linesArray.size(); i++) {
             String line = linesArray.get(i).trim();
             methodLines.add(line);
-            if (line.contains("{")) {
+            if (line.contains(CLOSING_CURLY_BRACE)) {
                 braceBalance++;
                 started = true;
             }
-            if (line.contains("}")) {
+            if (line.contains(CLOSING_CURLY_BARCE)) {
                 braceBalance--;
             }
             if (started && braceBalance == 0) {
@@ -84,8 +172,8 @@ public class FunctionBodyValidator {
     /**
      * Validates the content of a single method in s-Java code.
      *
-     * @param methodLines        List of code lines representing the method.
-     * @return                   0 if the method is valid, 1 if invalid.
+     * @param methodLines List of code lines representing the method.
+     * @param methodName  The name of the method being validated.
      */
     public void validateMethod(List<String> methodLines, String methodName) {
         try {
@@ -95,22 +183,23 @@ public class FunctionBodyValidator {
             addMethodParametersToLocalVariables(methodName, localVariables);
 
             // Step 2: Validate Method Body
-            validateMethodBody(methodLines.subList(1, methodLines.size() - 1), localVariables,
+            validateMethodBody(methodLines.subList(INT1, methodLines.size() - INT1), localVariables,
                     new HashMap<>(), true);
             // Step 3: Ensure Method Ends with Valid Return
-            validateReturnStatement(methodLines.get(methodLines.size() - 2).trim());
+            validateReturnStatement(methodLines.get(methodLines.size() - INT2).trim());
         } catch (RuntimeException e) {
             System.out.println(e.getMessage());
             System.exit(SYNTAX_ERROR_EXIT_CODE);
         }
     }
 
-    private void addMethodParametersToLocalVariables(String methodName, Map<String, Variable<?>> localVariables) {
+    private void addMethodParametersToLocalVariables(String methodName, Map<String,
+            Variable<?>> localVariables) {
         // Retrieve the parameter list for the given method
         List<Map<String, Variable<Object>>> parameterList = functionsMap.get(methodName);
 
         if (parameterList == null) {
-            throw new RuntimeException("Method not found in functionsMap: " + methodName);
+            throw new RuntimeException(METHOD_NOT_FOUND_IN_FUNCTIONS_MAP + methodName);
         }
 
         // Add each parameter to the localVariables map
@@ -125,7 +214,8 @@ public class FunctionBodyValidator {
                 }
 
                 // Add parameter to localVariables
-                localVariables.put(paramName, new Variable<>(null, paramVariable.getType(), paramVariable.isFinal()));
+                localVariables.put(paramName, new Variable<>(null, paramVariable.getType(),
+                        paramVariable.isFinal()));
             }
         }
     }
@@ -141,18 +231,18 @@ public class FunctionBodyValidator {
         while (currentLine < bodyLines.size()) {
             line = bodyLines.get(currentLine).trim();
 
-            if (line.contains("{")) braceBalance++;
-            if (line.contains("}")) braceBalance--;
+            if (line.contains(CLOSING_CURLY_BRACE)) braceBalance++;
+            if (line.contains(CLOSING_CURLY_BARCE)) braceBalance--;
 
             if (braceBalance < 0) {
-                throw new RuntimeException("Unmatched closing brace.");
+                throw new RuntimeException(UNMATCHED_CLOSING_BRACE);
             }
 
-            if (line.startsWith("if") || line.startsWith("while")) {
+            if (line.startsWith(IF) || line.startsWith(WHILE)) {
                 int conditionLines = validateConditionalBlock(line, bodyLines, localVariables);
                 braceBalance--; // closing } for the conditional block checked in validateConditionalBlock
                 currentLine += conditionLines;  // Skip processed block lines
-            } else if (line.startsWith("return")) {
+            } else if (line.startsWith(RETURN)) {
                 currentLine++;
             } else {
                 validateMethodLine(line, localVariables, outerVariables);
@@ -161,31 +251,33 @@ public class FunctionBodyValidator {
         }
 
         if (braceBalance != 0) {
-            throw new RuntimeException("Unmatched opening brace.");
+            throw new RuntimeException(UNMATCHED_OPENING_BRACE);
         }
 
         // Check for a return statement if expected
         if (expectReturn) {
-            String lastLine = bodyLines.get(bodyLines.size() - 1).trim();
-            if (!lastLine.equals("return;")) {
-                throw new RuntimeException("Missing return statement at the end of the method.");
+            String lastLine = bodyLines.get(bodyLines.size() - INT1).trim();
+            if (!lastLine.equals(RETURN_AND_END_LINE)) {
+                throw new RuntimeException(MISSING_RETURN_STATEMENT_AT_THE_END_OF_THE_METHOD);
             }
         }
     }
 
 
-    private int validateConditionalBlock(String line, List<String> bodyLines, Map<String, Variable<?>> localVariables) {
-        String conditionalPattern = "^(if|while)\\s*\\(([^\\)]+)\\)\\s*\\{$";
+    private int validateConditionalBlock(String line, List<String> bodyLines, Map<String,
+            Variable<?>> localVariables) {
+        String conditionalPattern = CONDITIONAL_PATTERN;
         if (!line.matches(conditionalPattern)) {
-            throw new RuntimeException("Invalid conditional block: " + line);
+            throw new RuntimeException(INVALID_CONDITIONAL_BLOCK + line);
         }
 
         // Extract and validate the condition expression
-        String condition = line.substring(line.indexOf('(') + 1, line.indexOf(')')).trim();
+        String condition = line.substring(line.indexOf(CHAR_OPENING_REGULAR_BRACE) + INT1,
+                line.indexOf(CHARACTER_CLOSING_REGULAR_BRACE)).trim();
         validateCondition(condition, localVariables, globalMap);
 
-        int braceBalance = 1;  // We start with 1 because the current line contains '{'
-        int currentLine = bodyLines.indexOf(line) + 1;  // Start processing from the next line
+        int braceBalance = INT1;  // We start with 1 because the current line contains '{'
+        int currentLine = bodyLines.indexOf(line) + INT1;  // Start processing from the next line
 
         // Create a new local scope by copying the existing variables
         Map<String, Variable<?>> outerVariables = new HashMap<>(localVariables);
@@ -196,30 +288,31 @@ public class FunctionBodyValidator {
             blockLines.add(current);
 
             // Handle braces
-            if (current.contains("{")) braceBalance++;
-            if (current.contains("}")) braceBalance--;
+            if (current.contains(CLOSING_CURLY_BRACE)) braceBalance++;
+            if (current.contains(CLOSING_CURLY_BARCE)) braceBalance--;
 
             // If we close the block, validate its contents recursively without requiring return
             if (braceBalance == 0) {
-                blockLines.remove(blockLines.size() - 1);
+                blockLines.remove(blockLines.size() - INT1);
                 validateMethodBody(blockLines, new HashMap<>(), outerVariables, false);
-                return currentLine - bodyLines.indexOf(line) + 1;  // Number of lines processed
+                return currentLine - bodyLines.indexOf(line) + INT1;  // Number of lines processed
             }
 
             currentLine++;
         }
 
-        throw new RuntimeException("Unmatched opening brace for conditional block.");
+        throw new RuntimeException(UNMATCHED_OPENING_BRACE_FOR_CONDITIONAL_BLOCK);
     }
 
-    private void validateCondition(String condition, Map<String, Variable<?>> localVariables, Map<String, Variable<?>> globalVariables) {
+    private void validateCondition(String condition, Map<String, Variable<?>> localVariables,
+                                   Map<String, Variable<?>> globalVariables) {
         // Split condition by logical operators (|| or &&)
-        String[] subConditions = condition.split("\\|\\||&&");
+        String[] subConditions = condition.split(SPLIT_PATTERN_FOR_VALIDATE_CONDITION);
 
         for (String subCondition : subConditions) {
             subCondition = subCondition.trim();
             if (subCondition.isEmpty()) {
-                throw new RuntimeException("Empty condition in: " + condition);
+                throw new RuntimeException(EMPTY_CONDITION_ECXEPTION + condition);
             }
 
             // Check if the subCondition is a literal (boolean, int, or double)
@@ -231,15 +324,16 @@ public class FunctionBodyValidator {
             if (localVariables.containsKey(subCondition)) {
                 Variable<?> variable = localVariables.get(subCondition);
                 if (!isValidConditionType(variable)) {
-                    throw new RuntimeException("Invalid variable type in condition: " + subCondition);
+                    throw new RuntimeException(INVALID_VARIABLE_TYPE_EXCEPTION + subCondition);
                 }
             } else if (globalVariables.containsKey(subCondition)) {
                 Variable<?> variable = globalVariables.get(subCondition);
                 if (!isValidConditionType(variable)) {
-                    throw new RuntimeException("Invalid variable type in condition: " + subCondition);
+                    throw new RuntimeException(INVALID_VARIABLE_TYPE_EXCEPTION + subCondition);
                 }
             } else {
-                throw new RuntimeException("Unknown variable or invalid literal in condition: " + subCondition);
+                throw new RuntimeException(UNKNOWN_VARIABLE_OR_INVALID_LITERAL_IN_CONDITION_EXCEPTION +
+                        subCondition);
             }
         }
     }
@@ -247,7 +341,7 @@ public class FunctionBodyValidator {
 
     // Utility method to check if a string is a boolean literal
     private boolean isBooleanLiteral(String value) {
-        return "true".equals(value) || "false".equals(value);
+        return TRUE.equals(value) || FALSE.equals(value);
     }
 
     // Utility method to check if a string is a numeric literal
@@ -262,7 +356,8 @@ public class FunctionBodyValidator {
 
     // Utility method to check if a variable is of a valid type for a condition
     private boolean isValidConditionType(Variable<?> variable) {
-        return "boolean".equals(variable.getType()) || "int".equals(variable.getType()) || "double".equals(variable.getType());
+        return BOOLEAN.equals(variable.getType()) || INT.equals(variable.getType()) ||
+                DOUBLE.equals(variable.getType());
     }
 
 
@@ -271,21 +366,21 @@ public class FunctionBodyValidator {
         if (line.matches(".*;")) { // todo maybe redundant
             if (RowValidnessClass.isInMethodAssignment(line)) {
                 validateAssignment(line, localVariables, outerVariables);
-            } else if (line.matches("(int|double|boolean|char|String).*")) {
+            } else if (line.matches(INT_DOUBLE_BOOLEAN_CHAR_STRING)) {
                 validateVariableDeclaration(line, localVariables);
             } else {
                 validateMethodCall(line);
             }
         } else {
-            throw new RuntimeException("Invalid line: " + line);
+            throw new RuntimeException(INVALID_LINE + line);
         }
     }
 
     private void validateAssignment(String line, Map<String, Variable<?>> localVariables, Map<String,
             Variable<?>> outerVariables) {
-        String[] parts = line.split("\\s*=\\s*");
+        String[] parts = line.split(REGEX_WORD_SPACE_WORD);
         String variableName = parts[0].trim();
-        String value = parts[1].replace(";", "").trim();
+        String value = parts[INT1].replace(SENICOLON, EMPTY).trim();
 
 
         Variable<?> variable = localVariables.getOrDefault(
@@ -296,22 +391,23 @@ public class FunctionBodyValidator {
         );
 
         if (variable == null) {
-            throw new RuntimeException("Undefined variable: " + variableName);
+            throw new RuntimeException(UNDEFINED_VARIABLE + variableName);
         }
 
         Object resolvedValue = resolveValue(value, localVariables, globalMap);
 
         // Dynamically check type compatibility
         if (!isTypeCompatible(variable.getType(), resolvedValue)) {
-            throw new RuntimeException("Type mismatch for variable: " + variableName);
+            throw new RuntimeException(TYPE_MISMATCH_FOR_VARIABLE + variableName);
         }
 
         if (variable.isFinal()) {
-            throw new RuntimeException("Cannot assign a value to final variable: " + variableName);
+            throw new RuntimeException(CANNOT_ASSIGN_A_VALUE_TO_FINAL_VARIABLE + variableName);
         }
     }
 
-    private Object resolveValue(String value, Map<String, Variable<?>> localVariables, Map<String, Variable<?>> globalMap) {
+    private Object resolveValue(String value, Map<String, Variable<?>> localVariables,
+                                Map<String, Variable<?>> globalMap) {
         if (localVariables.containsKey(value)) {
             return localVariables.get(value).getValue();
         }
@@ -322,36 +418,29 @@ public class FunctionBodyValidator {
     }
 
     private Object validateLiteral(String value) {
-        // Patterns for literals
-        String intPattern = "-?\\d+";
-        String doublePattern = "-?\\d*\\.\\d+|-?\\d+\\.\\d*";
-        String booleanPattern = "true|false";
-        String charPattern = "'.'";
-        String stringPattern = "\"[^\"]*\"";
-
         // Match against type-specific patterns
-        if (value.matches(intPattern)) {
+        if (value.matches(INT_PATTERN)) {
             return Integer.parseInt(value);
         }
-        if (value.matches(doublePattern)) {
+        if (value.matches(DOUBLE_PATTERN)) {
             return Double.parseDouble(value);
         }
-        if (value.matches(booleanPattern)) {
+        if (value.matches(TRUE_FALSE)) {
             return Boolean.parseBoolean(value);
         }
-        if (value.matches(charPattern)) {
-            return value.charAt(1); // Extract character inside single quotes
+        if (value.matches(CHAR_PATTERN)) {
+            return value.charAt(INT1); // Extract character inside single quotes
         }
-        if (value.matches(stringPattern)) {
-            return value.substring(1, value.length() - 1); // Remove quotes
+        if (value.matches(STRING_PATTERN)) {
+            return value.substring(INT1, value.length() - INT1); // Remove quotes
         }
 
-        throw new RuntimeException("Invalid literal value: " + value);
+        throw new RuntimeException(INVALID_LITERAL_VALUE + value);
     }
 
     private void validateReturnStatement(String line) {
-        if (!line.equals("return;")) {
-            throw new RuntimeException("Invalid return statement: " + line);
+        if (!line.equals(RETURN_AND_END_LINE)) {
+            throw new RuntimeException(INVALID_RETURN_STATEMENT + line);
         }
     }
 
@@ -361,54 +450,49 @@ public class FunctionBodyValidator {
         }
 
         switch (targetType) {
-            case "int":
+            case INT:
                 return resolvedValue instanceof Integer;
-            case "double":
-                return resolvedValue instanceof Double || resolvedValue instanceof Integer; // int can be assigned to double
-            case "boolean":
-                return resolvedValue instanceof Boolean || resolvedValue instanceof Integer || resolvedValue instanceof Double;
-            case "char":
+            case DOUBLE:
+                return resolvedValue instanceof Double || resolvedValue instanceof Integer;
+                // int can be assigned to double
+            case BOOLEAN:
+                return resolvedValue instanceof Boolean || resolvedValue instanceof Integer ||
+                        resolvedValue instanceof Double;
+            case CHAR:
                 return resolvedValue instanceof Character;
-            case "String":
+            case STRING:
                 return resolvedValue instanceof String;
             default:
-                throw new RuntimeException("Unknown type: " + targetType);
+                throw new RuntimeException(UNKNOWN_TYPE + targetType);
         }
     }
 
     private void validateVariableDeclaration(String line, Map<String, Variable<?>> localVariables) {
-        // Regex for variable declaration (with or without initialization)
-        String validTypes = "int|double|boolean|char|String";
-        String variableNamePattern = "[a-zA-Z_][a-zA-Z0-9_]*";
-        String valuePattern = ".*"; // Placeholder for further validation
-        String declarationPattern = String.format(
-                "^(final\\s+)?(%s)\\s+(%s(\\s*=\\s*%s)?(\\s*,\\s*%s(\\s*=\\s*%s)?)*)\\s*;$",
-                validTypes, variableNamePattern, valuePattern, variableNamePattern, valuePattern
-        );
 
-        if (!line.matches(declarationPattern)) {
-            throw new RuntimeException("Invalid variable declaration: " + line);
+
+        if (!line.matches(DECLERATION_PATTERN)) {
+            throw new RuntimeException(INVALID_VARIABLE_DECLARATION_EXCEPTION + line);
         }
 
         // Extract components
-        String[] parts = line.split("\\s+", 3);
-        boolean isFinal = parts[0].equals("final");
-        String type = isFinal ? parts[1] : parts[0];
-        String variables = isFinal ? parts[2] : parts[1];
+        String[] parts = line.split(SPLIT_FORMAT, SPLIT_LIMIT);
+        boolean isFinal = parts[0].equals(FINAL_KEY_WORD);
+        String type = isFinal ? parts[INT1] : parts[0];
+        String variables = isFinal ? parts[INT2] : parts[INT1];
 
         // Handle multiple variables separated by commas
-        String[] declarations = variables.split("\\s*,\\s*");
+        String[] declarations = variables.split(REGEX_WORD_WORD);
         for (String declaration : declarations) {
-            String[] nameValue = declaration.split("\\s*=\\s*");
+            String[] nameValue = declaration.split(REGEX_WORD_SPACE_WORD);
             String name = nameValue[0];
 
             if (localVariables.containsKey(name)) {
-                throw new RuntimeException("Duplicate variable name in local scope: " + name);
+                throw new RuntimeException(DUPLICATE_VARIABLE_NAME_IN_LOCAL_SCOPE + name);
             }
 
             Object resolvedValue = null;
-            if (nameValue.length > 1) {
-                resolvedValue = resolveValue(nameValue[1], localVariables, null);
+            if (nameValue.length > INT1) {
+                resolvedValue = resolveValue(nameValue[INT1], localVariables, null);
             }
 
             localVariables.put(name, new Variable<>(resolvedValue, type, isFinal));
@@ -417,21 +501,21 @@ public class FunctionBodyValidator {
 
     private void validateMethodCall(String line) {
         // Regex for method call: methodName(arg1, arg2, ...)
-        String methodCallPattern = "[a-zA-Z_][a-zA-Z0-9_]*\\s*\\(([^\\)\\(]*)\\)\\s*;";
+        String methodCallPattern = METHOD_CALL_FORMAT;
         if (!line.matches(methodCallPattern)) {
-            throw new RuntimeException("Invalid method call: " + line);
+            throw new RuntimeException(INVALID_METHOD_CALL + line);
         }
 
-        String methodName = line.substring(0, line.indexOf('(')).trim();
+        String methodName = line.substring(0, line.indexOf(CHAR_OPENING_REGULAR_BRACE)).trim();
         if (!functionsMap.containsKey(methodName)) {
-            throw new RuntimeException("Undefined method: " + methodName);
+            throw new RuntimeException(EXCEPTION_UNDEFINED_METHOD + methodName);
         }
 
-        String arguments = line.substring(line.indexOf('(') + 1, line.indexOf(')')).trim();
+        String arguments = line.substring(line.indexOf(CHAR_OPENING_REGULAR_BRACE) + INT1,
+                line.indexOf(CHARACTER_CLOSING_REGULAR_BRACE)).trim();
         if (!arguments.isEmpty()) {
-            String[] args = arguments.split("\\s*,\\s*");
+            String[] args = arguments.split(REGEX_WORD_WORD);
             for (String arg : args) {
-                // Validate each argument (assumes resolveValue validates types)
                 resolveValue(arg, new HashMap<>(), new HashMap<>());
             }
         }

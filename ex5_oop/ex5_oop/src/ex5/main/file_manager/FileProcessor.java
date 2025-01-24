@@ -47,16 +47,15 @@ public class FileProcessor{
     /**
      * Checks the validity of all lines in the file.
      *
-     * @throws IOException If an I/O error occurs during the process.
      */
-    public void preprocessCheckLineValidity() throws IOException {
+    public void preprocessCheckLineValidity() {
         String line;
         for (int lineIndex = 0; lineIndex < linesNumber; lineIndex++) {
             line = linesArray.get(lineIndex);
             try {
-                RowValidnessClass.check_suffixes(line, lineIndex);
+                RowValidnessClass.checkSuffixes(line, lineIndex);
                 RowValidnessClass.checkMiddleComments(line, lineIndex);
-                RowValidnessClass.checkLineFormat(line, lineIndex); // todo uncomment
+                RowValidnessClass.checkLineFormat(line, lineIndex);
             } catch (RuntimeException e) {
                 System.out.println(e.getMessage());
                 System.exit(SYNTAX_ERROR_EXIT_CODE);

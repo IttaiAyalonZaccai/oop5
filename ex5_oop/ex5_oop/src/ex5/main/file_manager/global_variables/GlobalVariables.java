@@ -7,157 +7,173 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * The GlobalVariables class processes and validates global variable declarations in s-Java code.
+ * It ensures the correct syntax, type compatibility, and uniqueness of global variables.
+ */
 public class GlobalVariables {
+    private static final String ERROR_UNMATCHED_CLOSING_BRACE = "Unmatched closing brace encountered.";
+    private static final String ERROR_UNMATCHED_OPENING_BRACE = "Unmatched opening brace(s) detected.";
+    private static final String ERROR_INVALID_DECLARATION = "Invalid global variable declaration: ";
+    private static final String ERROR_DUPLICATE_VARIABLE = "Duplicate global variable name: ";
+    private static final String ERROR_TYPE_MISMATCH = "Type mismatch: Cannot assign ";
+    private static final String ERROR_UNKNOWN_TYPE = "Unknown type: ";
+    private static final String ERROR_INVALID_INT = "Invalid value for type int: ";
+    private static final String ERROR_INVALID_DOUBLE = "Invalid value for type double: ";
+    private static final String ERROR_INVALID_BOOLEAN = "Invalid value for type boolean: ";
+    private static final String ERROR_INVALID_CHAR = "Invalid value for type char: ";
+    private static final String ERROR_INVALID_STRING = "Invalid value for type String: ";
+
+    private static final String VALID_TYPES = "int|double|boolean|char|String";
+    private static final String VARIABLE_NAME_PATTERN = "[a-zA-Z_][a-zA-Z0-9_]*";
+    private static final String VALUE_PATTERN = ".*";
+    private static final String INT_PATTERN = "-?\\d+";
+    private static final String DOUBLE_PATTERN = "-?\\d*\\.\\d+|-?\\d+\\.\\d*|-?\\d+";
+    private static final String BOOLEAN_PATTERN = "true|false";
+    private static final String CHAR_PATTERN = "'.'";
+    private static final String STRING_PATTERN = "\"[^\"]*\"";
+
+    private static final String DECLARATION_PATTERN = String.format(
+            "^(final\\s+)?(%s)\\s+(%s(\\s*=\\s*%s)?(\\s*,\\s*%s(\\s*=\\s*%s)?)*)\\s*;$",
+            VALID_TYPES, VARIABLE_NAME_PATTERN, VALUE_PATTERN, VARIABLE_NAME_PATTERN, VALUE_PATTERN
+    );
+    public static final String INT = "int";
+    public static final String DOUBLE = "double";
+    public static final String BOOLEAN = "boolean";
+    public static final String CHAR = "char";
+    public static final String STRING = "String";
+    public static final int INT1 = 1;
+    public static final String TO = " to ";
+
     private final List<String> linesArray;
-    private HashMap<String, Variable<?>> globalMap = new HashMap<>();
+    private final HashMap<String, Variable<?>> globalMap = new HashMap<>();
+
+    /**
+     * Constructor for GlobalVariables.
+     *
+     * @param linesArray List of code lines.
+     */
     public GlobalVariables(List<String> linesArray) {
         this.linesArray = linesArray;
     }
 
-    public HashMap<String, Variable<?>> getGlobalMap(){
+    /**
+     * Retrieves the global variable map.
+     *
+     * @return HashMap containing global variable names and values.
+     */
+    public HashMap<String, Variable<?>> getGlobalMap() {
         return globalMap;
     }
 
+    /**
+     * Validates and creates the global variable map from the given lines of code.
+     *
+     * @throws RuntimeException if there are unmatched braces or invalid declarations.
+     */
     public void validAndCreateGlobalMap() throws RuntimeException {
-        // todo stack of { for validation that it is indeed a global var
-        // todo what do to with final?
-        // counter for tracking scope (stack-like)
         int scopeLevel = 0;
-        // iterate over each line in the linesArray
         for (String line : linesArray) {
-            // trim the line to remove leading/trailing whitespace
-            // todo valid this line
             line = line.trim();
-            // Check for opening brace
             if (line.endsWith("{")) {
                 scopeLevel++;
                 continue;
             }
-            // check for closing brace
             if (line.endsWith("}")) {
                 if (scopeLevel > 0) {
                     scopeLevel--;
                 } else {
-                    throw new RuntimeException("Unmatched closing brace encountered.");
+                    throw new RuntimeException(ERROR_UNMATCHED_CLOSING_BRACE);
                 }
                 continue;
             }
-            // if at the global scope (scopeLevel == 0), validate the line
             if (scopeLevel == 0) {
                 validateAndAddGlobalVariable(line);
             }
         }
-        // after processing, ensure all braces are balanced
         if (scopeLevel != 0) {
-            throw new RuntimeException("Unmatched opening brace(s) detected.");
+            throw new RuntimeException(ERROR_UNMATCHED_OPENING_BRACE);
         }
     }
 
     private void validateAndAddGlobalVariable(String line) throws RuntimeException {
-        // Trim whitespace for cleaner processing
         line = line.trim();
-
-        // Regex patterns for variable declaration and validation
-        String validTypes = "int|double|boolean|char|String";
-        String variableNamePattern = "[a-zA-Z_][a-zA-Z0-9_]*"; // Matches legal variable names
-        String valuePattern = ".*"; // Placeholder for further value validation
-
-        // Pattern for a global variable declaration
-        String declarationPattern = String.format(
-                "^(final\\s+)?(%s)\\s+(%s(\\s*=\\s*%s)?(\\s*,\\s*%s(\\s*=\\s*%s)?)*)\\s*;$",
-                validTypes, variableNamePattern, valuePattern, variableNamePattern, valuePattern
-        );
-
-        // Compile the pattern
-        Pattern pattern = Pattern.compile(declarationPattern);
+        Pattern pattern = Pattern.compile(DECLARATION_PATTERN);
         Matcher matcher = pattern.matcher(line);
 
         if (!matcher.matches()) {
-            throw new RuntimeException("Invalid global variable declaration: " + line);
+            throw new RuntimeException(ERROR_INVALID_DECLARATION + line);
         }
 
-        // Extract components
-        boolean isFinal = matcher.group(1) != null; // Checks if "final" is present
+        boolean isFinal = matcher.group(INT1) != null;
         String type = matcher.group(2);
         String variables = matcher.group(3);
 
-        // Split multiple variables
         String[] variableParts = variables.split("\\s*,\\s*");
         for (String varPart : variableParts) {
-            // Parse variable name and value
             String[] nameValue = varPart.split("\\s*=\\s*");
             String name = nameValue[0];
-            String value = nameValue.length > 1 ? nameValue[1] : null;
+            String value = nameValue.length > INT1 ? nameValue[INT1] : null;
 
-            // Validate name uniqueness
             if (globalMap.containsKey(name)) {
-                throw new RuntimeException("Duplicate global variable name: " + name);
+                throw new RuntimeException(ERROR_DUPLICATE_VARIABLE + name);
             }
 
-            // Validate the value
-            Object resolvedValue = null; // This will hold the parsed or resolved value
+            Object resolvedValue = null;
             if (value != null) {
                 resolvedValue = validateValue(type, value);
             }
 
-            // Add the variable to the map
             Variable<Object> variable = new Variable<>(resolvedValue, type, isFinal);
             globalMap.put(name, variable);
         }
     }
 
     private Object validateValue(String type, String value) throws RuntimeException {
-        // If value is a reference to another variable
         if (globalMap.containsKey(value)) {
             Variable<?> sourceVar = globalMap.get(value);
-
-            // Check type compatibility
-//            if (!isTypeCompatible(type, sourceVar.getType())) {
             if (!type.equals(sourceVar.getType())) {
-                throw new RuntimeException("Type mismatch: Cannot assign " + sourceVar.getType() + " to " + type);
+                throw new RuntimeException(ERROR_TYPE_MISMATCH + sourceVar.getType() + TO + type);
             }
-
-            // Return the source variable's value
             return sourceVar.getValue();
         }
 
-        // Match value against type-specific patterns
         switch (type) {
-            case "int":
-                if (value.matches("-?\\d+")) {
+            case INT:
+                if (value.matches(INT_PATTERN)) {
                     return Integer.parseInt(value);
                 }
-                throw new RuntimeException("Invalid value for type int: " + value);
+                throw new RuntimeException(ERROR_INVALID_INT + value);
 
-            case "double":
-                if (value.matches("-?\\d*\\.\\d+|-?\\d+\\.\\d*|-?\\d+")) {
+            case DOUBLE:
+                if (value.matches(DOUBLE_PATTERN)) {
                     return Double.parseDouble(value);
                 }
-                throw new RuntimeException("Invalid value for type double: " + value);
+                throw new RuntimeException(ERROR_INVALID_DOUBLE + value);
 
-            case "boolean":
-                if (value.matches("true|false")) {
+            case BOOLEAN:
+                if (value.matches(BOOLEAN_PATTERN)) {
                     return Boolean.parseBoolean(value);
                 }
-                if (value.matches("-?\\d+(\\.\\d+)?")) {
-                    return Double.parseDouble(value) != 0; // Non-zero values are true
+                if (value.matches(DOUBLE_PATTERN)) {
+                    return Double.parseDouble(value) != 0;
                 }
-                throw new RuntimeException("Invalid value for type boolean: " + value);
+                throw new RuntimeException(ERROR_INVALID_BOOLEAN + value);
 
-            case "char":
-                if (value.matches("'.'")) {
-                    return value.charAt(1); // Extract the character inside single quotes
+            case CHAR:
+                if (value.matches(CHAR_PATTERN)) {
+                    return value.charAt(INT1);
                 }
-                throw new RuntimeException("Invalid value for type char: " + value);
+                throw new RuntimeException(ERROR_INVALID_CHAR + value);
 
-            case "String":
-                if (value.matches("\"[^\"]*\"")) {
-                    return value.substring(1, value.length() - 1); // Remove the quotes
+            case STRING:
+                if (value.matches(STRING_PATTERN)) {
+                    return value.substring(INT1, value.length() - INT1);
                 }
-                throw new RuntimeException("Invalid value for type String: " + value);
+                throw new RuntimeException(ERROR_INVALID_STRING + value);
 
             default:
-                throw new RuntimeException("Unknown type: " + type);
+                throw new RuntimeException(ERROR_UNKNOWN_TYPE + type);
         }
     }
 }
