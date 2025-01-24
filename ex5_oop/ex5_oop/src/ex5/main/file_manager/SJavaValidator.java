@@ -6,18 +6,34 @@ import java.util.regex.PatternSyntaxException;
 public class SJavaValidator {
     // Method to check if a line matches the variable declaration format
     // Regular expression for valid s-Java variable declaration
+    private static final String VARIABLE_FORMAT = "[a-zA-Z]\\w*";
     private static final String DECLARATION_REGEX =
             "^\\s*(final\\s+)?(int|double|String|boolean|char)\\s+" +  // Type with optional 'final'
-                    "([a-zA-Z]\\w*\\s*(=\\s*[^,;]+)?\\s*,\\s*)*" +  // Multiple variables
+                    "(" + VARIABLE_FORMAT+ "\\s*(=\\s*[^,;]+)?\\s*,\\s*)*" +  // Multiple variables
                     "[a-zA-Z_][a-zA-Z_\\d]*\\s*(=\\s*[^,;]+)?\\s*;\\s*$";     // Last variable and semicolon
-
     private static final Pattern DECLARATION_PATTERN = Pattern.compile(DECLARATION_REGEX);
+    // Regular expression for valid s-Java variable assignment
+//    private static final String ASSIGNMENT_REGEX =
+//            "^\\s*([a-zA-Z_][a-zA-Z_\\d]*)\\s*=\\s*" +   // Variable name
+//                    "(?:\"[^\"]*\"|'[^']'|true|false|[-+]?\\d+(\\.\\d+)?|[-+]?\\.\\d+)\\s*" + // Assigned value (String, char, boolean, int, double)
+//                    "(?:,\\s*[a-zA-Z_][a-zA-Z_\\d]*\\s*=\\s*" +   // Multiple assignments
+//                    "(?:\"[^\"]*\"|'[^']'|true|false|[-+]?\\d+(\\.\\d+)?|[-+]?\\.\\d+)\\s*)*" +
+//                    ";\\s*$";
+
+    private static final String ASSIGNMENT_REGEX =
+            "^\\s*(" + VARIABLE_FORMAT + ")\\s*=\\s*" +  // Variable name
+                    "(?:\"[^\"]*\"|'[^']'|true|false|[-+]?\\d+(\\.\\d+)?|[-+]?\\.\\d+|[a-zA-Z_][a-zA-Z_\\d]*)\\s*" +  // Values or variables
+                    "(?:,\\s*[a-zA-Z_][a-zA-Z_\\d]*\\s*=\\s*" +  // Multiple assignments
+                    "(?:\"[^\"]*\"|'[^']'|true|false|[-+]?\\d+(\\.\\d+)?|[-+]?\\.\\d+|[a-zA-Z_][a-zA-Z_\\d]*)\\s*)*" +
+                    ";\\s*$";
+    private static final Pattern ASSIGNMENT_PATTERN = Pattern.compile(ASSIGNMENT_REGEX);
+
 
     public static boolean matchDeclarationFormat(String line) {
         Matcher matcher = DECLARATION_PATTERN.matcher(line);
         return matcher.matches();
     }
-//    public static boolean matchDeclarationFormat(String line) {
+//    public static boolean matchDeclarationFormat(String line) { // todo remove
 //        // Valid types in s-Java
 //        String validTypes = "int|double|boolean|char|String";
 //
@@ -44,7 +60,8 @@ public class SJavaValidator {
 
 
     public static boolean matchAssignmentFormat(String line) {
-        return true;
+        Matcher matcher = ASSIGNMENT_PATTERN.matcher(line);
+        return matcher.matches();
     }
 
     // Method to check if a line matches the if/while block format
@@ -240,11 +257,11 @@ public class SJavaValidator {
                 "x = 5"                    // Invalid: missing semicolon
         };
 
-//        System.out.println("\nTesting Assignment Format:");
-//        for (String testCase : assignmentTestCases) {
-//            System.out.println("Testing: " + testCase);
-//            System.out.println("Matches: " + matchAssignmentFormat(testCase));
-//        }
+        System.out.println("\nTesting Assignment Format:");
+        for (String testCase : assignmentTestCases) {
+            System.out.println("Testing: " + testCase);
+            System.out.println("Matches: " + matchAssignmentFormat(testCase));
+        }
 
         // Test cases for variable declaration format
         String[] declarationTestCases = {
