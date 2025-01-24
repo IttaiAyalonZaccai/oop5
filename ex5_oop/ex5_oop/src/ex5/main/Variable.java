@@ -1,16 +1,16 @@
+package ex5.main;
+
 /**
  * This class represents a generic variable that holds a value, its type, and a finality status.
  * It is designed to store metadata for variables in a simplified Java environment.
  * @param <T> The type of the value stored in the variable.
  */
-package ex5.main;
-
 public class Variable<T> {
-    public static final String TO_STR_FORMAT_VARIABLE = "Variable{";
-    public static final String TO_STR_FORMAT_VALUE = "value=";
-    public static final String TO_STR_FORMAT_TYPE = ", type='";
-    public static final String TO_STR_FORMAT_FINAL = ", isFinal=";
-    public static final char CLOSE_BRACE = '}';
+    private static final String TO_STR_FORMAT_VARIABLE = "Variable{";
+    private static final String TO_STR_FORMAT_VALUE = "value=";
+    private static final String TO_STR_FORMAT_TYPE = ", type='";
+    private static final String TO_STR_FORMAT_FINAL = ", isFinal=";
+    private static final char CLOSE_BRACE = '}';
     private final T value;
     private final String type;
     private final boolean isFinal;

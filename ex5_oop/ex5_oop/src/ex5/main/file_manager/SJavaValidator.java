@@ -3,15 +3,17 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 /**
- * SJavaValidator class provides methods to validate different constructs in the simplified Java language (s-Java).
- * It uses regular expressions to match various patterns, including variable declarations, assignments, method declarations,
+ * SJavaValidator class provides methods to validate different constructs in the
+ * simplified Java language (s-Java).
+ * It uses regular expressions to match various patterns, including variable declarations,
+ * assignments, method declarations,
  * and control structures like if and while.
  */
 public class SJavaValidator {
     // Method to check if a line matches the variable declaration format
     // Regular expression for valid s-Java variable declaration
     private static final String VARIABLE_FORMAT = "[a-zA-Z]\\w*";
-    public static final String OPEN_BRACKET = "(";
+    private static final String OPEN_BRACKET = "(";
     private static final String DECLARATION_REGEX =
             "^\\s*(final\\s+)?(int|double|String|boolean|char)\\s+" +  // Type with optional 'final'
                     OPEN_BRACKET + VARIABLE_FORMAT + "\\s*(=\\s*[^,;]+)?\\s*,\\s*)*" +  // Multiple variables
@@ -20,9 +22,11 @@ public class SJavaValidator {
 
     private static final String ASSIGNMENT_REGEX =
             "^\\s*(" + VARIABLE_FORMAT + ")\\s*=\\s*" +  // Variable name
-                    "(?:\"[^\"]*\"|'[^']'|true|false|[-+]?\\d+(\\.\\d+)?|[-+]?\\.\\d+|[a-zA-Z_][a-zA-Z_\\d]*)\\s*" +  // Values or variables
+                    "(?:\"[^\"]*\"|'[^']'|true|false|[-+]?\\d+(\\.\\d+)?" +
+                    "|[-+]?\\.\\d+|[a-zA-Z_][a-zA-Z_\\d]*)\\s*" +  // Values or variables
                     "(?:,\\s*[a-zA-Z_][a-zA-Z_\\d]*\\s*=\\s*" +  // Multiple assignments
-                    "(?:\"[^\"]*\"|'[^']'|true|false|[-+]?\\d+(\\.\\d+)?|[-+]?\\.\\d+|[a-zA-Z_][a-zA-Z_\\d]*)\\s*)*" +
+                    "(?:\"[^\"]*\"|'[^']'|true|false|[-+]?\\d+(\\.\\d+)?|[-+]?\\.\\d+|" +
+                    "[a-zA-Z_][a-zA-Z_\\d]*)\\s*)*" +
                     ";\\s*$";
     private static final Pattern ASSIGNMENT_PATTERN = Pattern.compile(ASSIGNMENT_REGEX);
     private static final String IF = "if";
@@ -33,7 +37,8 @@ public class SJavaValidator {
     private static final String RETURN_REGEX = "^\\s*return\\s*;\\s*$";
     // Regex for a valid end-of-scope line:
     private static final String END_OF_SCOPE_REGEX = "^\\s*\\}\\s*$";
-    private static final String METHOD_IDENTIFIER = "[a-zA-Z][a-zA-Z0-9_]*"; // Valid identifier (method name or variable)
+    private static final String METHOD_IDENTIFIER = "[a-zA-Z][a-zA-Z0-9_]*"; // Valid identifier
+    // (method name or variable)
     private static final String NUMERIC_CONST = "\\d+";
     private static final String STRING_LITERAL = "\\\".*?\\\"";
     private static final String CHAR_LITERAL = "\\'.*?\\'";
@@ -43,14 +48,16 @@ public class SJavaValidator {
     private static final String ZERO_OR_MORE_WHITESPACES = "^\\s*";
     private static final String OPEN_PARENTHESIS_FORMAT_TRIMED = "\\s*\\(\\s*(";
     private static final String END_OF_METHOD = ")?\\s*\\)\\s*;\\s*$";
-    private static final String INT_DOUBLE_BOOLEAN_CHAR_STRING = "int|double|boolean|char|String"; // Valid parameter types
+    private static final String INT_DOUBLE_BOOLEAN_CHAR_STRING = "int|double|boolean|char|String";
+    // Valid parameter types
     private static final String OPTIONAL_FINAL = "(?:final\\s+)?(";
     private static final String CLOSING_PARENTHESIS = ")\\s+";
     private static final String VOID = "^\\s*void\\s+";
     private static final String END_OF_METHOD_DECLARATION = ")?\\s*\\)\\s*\\{\\s*$";
 
     /**
-     * Matches a given line against the variable declaration format (including optional 'final' and multiple variables).
+     * Matches a given line against the variable declaration format (including optional
+     * 'final' and multiple variables).
      *
      * @param line The line of code to check.
      * @return true if the line matches the variable declaration format, otherwise false.
@@ -127,11 +134,13 @@ public class SJavaValidator {
         // Constructing the regex for a method call format
         // Parameter regex
         String parameter =
-                OPEN_BRACKET + METHOD_IDENTIFIER + OR + NUMERIC_CONST + OR + STRING_LITERAL + OR + CHAR_LITERAL + ")";
+                OPEN_BRACKET + METHOD_IDENTIFIER + OR + NUMERIC_CONST + OR + STRING_LITERAL
+                        + OR + CHAR_LITERAL + ")";
         // Parameters list: optional first parameter, followed by zero or more comma-separated parameters
         String parameters = parameter + ZERO_OR_MORE_COMMA_SEPARATED + parameter + CLOSE_REG_BRACE;
         // Full method call regex
-        String methodCallRegex = ZERO_OR_MORE_WHITESPACES + METHOD_IDENTIFIER + OPEN_PARENTHESIS_FORMAT_TRIMED + parameters + END_OF_METHOD;
+        String methodCallRegex = ZERO_OR_MORE_WHITESPACES + METHOD_IDENTIFIER +
+                OPEN_PARENTHESIS_FORMAT_TRIMED + parameters + END_OF_METHOD;
 
         // Compile the regex pattern
         Pattern pattern = Pattern.compile(methodCallRegex);
@@ -142,7 +151,8 @@ public class SJavaValidator {
     }
 
     /**
-     * Matches a given line against the method declaration format, including the method name, return type, and parameters.
+     * Matches a given line against the method declaration format, including the method
+     * name, return type, and parameters.
      *
      * @param line The line of code to check.
      * @return true if the line matches the method declaration format, otherwise false.
@@ -156,7 +166,8 @@ public class SJavaValidator {
         // Parameters list: optional first parameter, followed by zero or more comma-separated parameters
         String parameters = parameter + ZERO_OR_MORE_COMMA_SEPARATED + parameter + CLOSE_REG_BRACE;
         // Full method declaration regex
-        String methodDeclarationRegex = VOID + identifier + OPEN_PARENTHESIS_FORMAT_TRIMED + parameters + END_OF_METHOD_DECLARATION;
+        String methodDeclarationRegex = VOID + identifier + OPEN_PARENTHESIS_FORMAT_TRIMED +
+                parameters + END_OF_METHOD_DECLARATION;
 
         // Compile the regex pattern
         Pattern pattern = Pattern.compile(methodDeclarationRegex);

@@ -24,9 +24,9 @@ public class FunctionNames {
     private static final String PARAMETER_PATTERN = "^\\s*((\\s*(int|double|boolean|char|String)\\s+" +
             "[a-zA-Z]\\w*\\s*)(,\\s*(int|double|boolean|char|String)\\s+[a-zA-Z]\\w*\\s*)*)?\\)\\s*\\{\\s*$";
     private static final String SPLIT_PATTERN = "\\("; // Split into left and right parts at the first '('
-    public static final String VAR_TYPES = "int|double|boolean|char|String";
+    private static final String VAR_TYPES = "int|double|boolean|char|String";
 
-    private int linesNumber;
+    private final int linesNumber;
     private final HashMap<String, List<Map<String, Variable<Object>>>> functionsMap = new HashMap<>();
     private final List<String> linesArray;
 

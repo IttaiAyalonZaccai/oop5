@@ -62,7 +62,10 @@ public class FileProcessor{
             }
         }
     }
-
+    /**
+     * Checks the validity of global variables.
+     *
+     */
     public void checkGlobalVariables() {
         GlobalVariables globalVariables = new GlobalVariables(linesArray);
         try {
@@ -74,7 +77,10 @@ public class FileProcessor{
         }
         this.globalMap = globalVariables.getGlobalMap();
     }
-
+    /**
+     * Checks the validity of functions names.
+     *
+     */
     public void checkFunctionNames() {
         FunctionNames functionNames = new FunctionNames(linesArray);
         try {
@@ -86,7 +92,10 @@ public class FileProcessor{
         }
         this.functionsMap = functionNames.getFunctionsMap();
     }
-
+    /**
+     * Checks the validity functio body.
+     *
+     */
     public void checkFunctionsBody() {
         FunctionBodyValidator functionBodyValidator = new FunctionBodyValidator(linesArray,
                                                                                 globalMap,

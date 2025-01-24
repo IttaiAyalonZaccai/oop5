@@ -1,12 +1,12 @@
+package ex5.main;
+import java.io.IOException;
+import static ex5.main.Sjavac.IO_ERROR_EXIT_CODE;
+
 /**
  * This class provides methods to validate input parameters for the program.
  * Specifically, it ensures that a single file name is passed as input
  * and that the file has the correct ".sjava" suffix.
  */
-package ex5.main;
-import java.io.IOException;
-import static ex5.main.Sjavac.IO_ERROR_EXIT_CODE;
-
 public class InputChecker {
     // Constants for error messages and file suffix
     private static final String PARAMETERS_NUMBER_ERROR = "Invalid number of parameters.";

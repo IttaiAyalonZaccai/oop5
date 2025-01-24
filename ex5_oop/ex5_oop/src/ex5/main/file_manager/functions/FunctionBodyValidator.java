@@ -21,80 +21,80 @@ import static ex5.main.Sjavac.SYNTAX_ERROR_EXIT_CODE;
  */
 public class FunctionBodyValidator {
 
-    public static final String METHOD_CALL_FORMAT = "[a-zA-Z_][a-zA-Z0-9_]*\\s*\\(([^\\)\\(]*)\\)\\s*;";
-    public static final String INVALID_METHOD_CALL = "Invalid method call: ";
-    public static final String EXCEPTION_UNDEFINED_METHOD = "Undefined method: ";
-    public static final String REGEX_WORD_WORD = "\\s*,\\s*";
-    public static final char CHARACTER_CLOSING_REGULAR_BRACE = ')';
-    public static final String DUPLICATE_VARIABLE_NAME_IN_LOCAL_SCOPE =
+    private static final String METHOD_CALL_FORMAT = "[a-zA-Z_][a-zA-Z0-9_]*\\s*\\(([^\\)\\(]*)\\)\\s*;";
+    private static final String INVALID_METHOD_CALL = "Invalid method call: ";
+    private static final String EXCEPTION_UNDEFINED_METHOD = "Undefined method: ";
+    private static final String REGEX_WORD_WORD = "\\s*,\\s*";
+    private static final char CHARACTER_CLOSING_REGULAR_BRACE = ')';
+    private static final String DUPLICATE_VARIABLE_NAME_IN_LOCAL_SCOPE =
             "Duplicate variable name in local scope: ";
-    public static final String REGEX_WORD_SPACE_WORD = "\\s*=\\s*";
-    public static final String INVALID_VARIABLE_DECLARATION_EXCEPTION = "Invalid variable declaration: ";
-    public static final String FINAL_KEY_WORD = "final";
-    public static final String SPLIT_FORMAT = "\\s+";
-    public static final int SPLIT_LIMIT = 3;
-    public static final int INT1 = 1;
-    public static final int INT2 = 2;
+    private static final String REGEX_WORD_SPACE_WORD = "\\s*=\\s*";
+    private static final String INVALID_VARIABLE_DECLARATION_EXCEPTION = "Invalid variable declaration: ";
+    private static final String FINAL_KEY_WORD = "final";
+    private static final String SPLIT_FORMAT = "\\s+";
+    private static final int SPLIT_LIMIT = 3;
+    private static final int INT1 = 1;
+    private static final int INT2 = 2;
     // Regex for variable declaration (with or without initialization)
-    public static final String VALID_TYPES = "int|double|boolean|char|String";
-    public static final String VARIABLE_NAME_PATTERN = "[a-zA-Z_][a-zA-Z0-9_]*";
-    public static final String VALUE_PATTERN = ".*"; // Placeholder for further validation
-    public static final String DECLERATION_PATTERN = String.format(
+    private static final String VALID_TYPES = "int|double|boolean|char|String";
+    private static final String VARIABLE_NAME_PATTERN = "[a-zA-Z_][a-zA-Z0-9_]*";
+    private static final String VALUE_PATTERN = ".*"; // Placeholder for further validation
+    private static final String DECLERATION_PATTERN = String.format(
             "^(final\\s+)?(%s)\\s+(%s(\\s*=\\s*%s)?(\\s*,\\s*%s(\\s*=\\s*%s)?)*)\\s*;$",
             VALID_TYPES, VARIABLE_NAME_PATTERN, VALUE_PATTERN, VARIABLE_NAME_PATTERN, VALUE_PATTERN
     );
 
-    public static final char CHAR_OPENING_REGULAR_BRACE = '(';
-    public static final String METHOD_NOT_FOUND_IN_FUNCTIONS_MAP = "Method not found in functionsMap: ";
-    public static final String CLOSING_CURLY_BARCE = "}";
-    public static final String CLOSING_CURLY_BRACE = "{";
-    public static final String INVALID_METHOD_DECLARATION = "Invalid method declaration: ";
-    public static final String METHOD_DECLERATION_PATTERN =
+    private static final char CHAR_OPENING_REGULAR_BRACE = '(';
+    private static final String METHOD_NOT_FOUND_IN_FUNCTIONS_MAP = "Method not found in functionsMap: ";
+    private static final String CLOSING_CURLY_BARCE = "}";
+    private static final String CLOSING_CURLY_BRACE = "{";
+    private static final String INVALID_METHOD_DECLARATION = "Invalid method declaration: ";
+    private static final String METHOD_DECLERATION_PATTERN =
             "void\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*\\(.*\\)\\s*\\{";
-    public static final String UNMATCHED_CLOSING_BRACE = "Unmatched closing brace.";
-    public static final String IF = "if";
-    public static final String WHILE = "while";
-    public static final String RETURN = "return";
-    public static final String UNMATCHED_OPENING_BRACE = "Unmatched opening brace.";
-    public static final String RETURN_AND_END_LINE = "return;";
-    public static final String MISSING_RETURN_STATEMENT_AT_THE_END_OF_THE_METHOD =
+    private static final String UNMATCHED_CLOSING_BRACE = "Unmatched closing brace.";
+    private static final String IF = "if";
+    private static final String WHILE = "while";
+    private static final String RETURN = "return";
+    private static final String UNMATCHED_OPENING_BRACE = "Unmatched opening brace.";
+    private static final String RETURN_AND_END_LINE = "return;";
+    private static final String MISSING_RETURN_STATEMENT_AT_THE_END_OF_THE_METHOD =
             "Missing return statement at the end of the method.";
-    public static final String CONDITIONAL_PATTERN = "^(if|while)\\s*\\(([^\\)]+)\\)\\s*\\{$";
-    public static final String INVALID_CONDITIONAL_BLOCK = "Invalid conditional block: ";
-    public static final String UNMATCHED_OPENING_BRACE_FOR_CONDITIONAL_BLOCK =
+    private static final String CONDITIONAL_PATTERN = "^(if|while)\\s*\\(([^\\)]+)\\)\\s*\\{$";
+    private static final String INVALID_CONDITIONAL_BLOCK = "Invalid conditional block: ";
+    private static final String UNMATCHED_OPENING_BRACE_FOR_CONDITIONAL_BLOCK =
             "Unmatched opening brace for conditional block.";
-    public static final String SPLIT_PATTERN_FOR_VALIDATE_CONDITION = "\\|\\||&&";
-    public static final String EMPTY_CONDITION_ECXEPTION = "Empty condition in: ";
-    public static final String INVALID_VARIABLE_TYPE_EXCEPTION = "Invalid variable type in condition: ";
-    public static final String UNKNOWN_VARIABLE_OR_INVALID_LITERAL_IN_CONDITION_EXCEPTION =
+    private static final String SPLIT_PATTERN_FOR_VALIDATE_CONDITION = "\\|\\||&&";
+    private static final String EMPTY_CONDITION_ECXEPTION = "Empty condition in: ";
+    private static final String INVALID_VARIABLE_TYPE_EXCEPTION = "Invalid variable type in condition: ";
+    private static final String UNKNOWN_VARIABLE_OR_INVALID_LITERAL_IN_CONDITION_EXCEPTION =
             "Unknown variable or invalid literal in condition: ";
-    public static final String TRUE = "true";
-    public static final String FALSE = "false";
-    public static final String BOOLEAN = "boolean";
-    public static final String INT = "int";
-    public static final String DOUBLE = "double";
-    public static final String INT_DOUBLE_BOOLEAN_CHAR_STRING = "(int|double|boolean|char|String).*";
-    public static final String INVALID_LINE = "Invalid line: ";
-    public static final String SENICOLON = ";";
-    public static final String EMPTY = "";
-    public static final String UNDEFINED_VARIABLE = "Undefined variable: ";
-    public static final String TYPE_MISMATCH_FOR_VARIABLE = "Type mismatch for variable: ";
-    public static final String CANNOT_ASSIGN_A_VALUE_TO_FINAL_VARIABLE =
+    private static final String TRUE = "true";
+    private static final String FALSE = "false";
+    private static final String BOOLEAN = "boolean";
+    private static final String INT = "int";
+    private static final String DOUBLE = "double";
+    private static final String INT_DOUBLE_BOOLEAN_CHAR_STRING = "(int|double|boolean|char|String).*";
+    private static final String INVALID_LINE = "Invalid line: ";
+    private static final String SENICOLON = ";";
+    private static final String EMPTY = "";
+    private static final String UNDEFINED_VARIABLE = "Undefined variable: ";
+    private static final String TYPE_MISMATCH_FOR_VARIABLE = "Type mismatch for variable: ";
+    private static final String CANNOT_ASSIGN_A_VALUE_TO_FINAL_VARIABLE =
             "Cannot assign a value to final variable: ";
-    public static final String INT_PATTERN = "-?\\d+";
-    public static final String DOUBLE_PATTERN = "-?\\d*\\.\\d+|-?\\d+\\.\\d*";
-    public static final String TRUE_FALSE = "true|false";
-    public static final String CHAR_PATTERN = "'.'";
-    public static final String STRING_PATTERN = "\"[^\"]*\"";
-    public static final String INVALID_LITERAL_VALUE = "Invalid literal value: ";
-    public static final String INVALID_RETURN_STATEMENT = "Invalid return statement: ";
-    public static final String CHAR = "char";
-    public static final String STRING = "String";
-    public static final String UNKNOWN_TYPE = "Unknown type: ";
+    private static final String INT_PATTERN = "-?\\d+";
+    private static final String DOUBLE_PATTERN = "-?\\d*\\.\\d+|-?\\d+\\.\\d*";
+    private static final String TRUE_FALSE = "true|false";
+    private static final String CHAR_PATTERN = "'.'";
+    private static final String STRING_PATTERN = "\"[^\"]*\"";
+    private static final String INVALID_LITERAL_VALUE = "Invalid literal value: ";
+    private static final String INVALID_RETURN_STATEMENT = "Invalid return statement: ";
+    private static final String CHAR = "char";
+    private static final String STRING = "String";
+    private static final String UNKNOWN_TYPE = "Unknown type: ";
+//    cllass variables
     private final List<String> linesArray;
     private final HashMap<String, Variable<?>> globalMap;
     private final HashMap<String, List<Map<String, Variable<Object>>>> functionsMap;
-
 
     /**
      * Constructor for FunctionBodyValidator

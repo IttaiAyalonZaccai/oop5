@@ -37,14 +37,14 @@ public class GlobalVariables {
             "^(final\\s+)?(%s)\\s+(%s(\\s*=\\s*%s)?(\\s*,\\s*%s(\\s*=\\s*%s)?)*)\\s*;$",
             VALID_TYPES, VARIABLE_NAME_PATTERN, VALUE_PATTERN, VARIABLE_NAME_PATTERN, VALUE_PATTERN
     );
-    public static final String INT = "int";
-    public static final String DOUBLE = "double";
-    public static final String BOOLEAN = "boolean";
-    public static final String CHAR = "char";
-    public static final String STRING = "String";
-    public static final int INT1 = 1;
-    public static final String TO = " to ";
-    public static final String ASSIGNING_TO_VALUE_NULL = "assigning to value 'null'";
+    private static final String INT = "int";
+    private static final String DOUBLE = "double";
+    private static final String BOOLEAN = "boolean";
+    private static final String CHAR = "char";
+    private static final String STRING = "String";
+    private static final int INT1 = 1;
+    private static final String TO = " to ";
+    private static final String ASSIGNING_TO_VALUE_NULL = "assigning to value 'null'";
 
     private final List<String> linesArray;
     private final HashMap<String, Variable<?>> globalMap = new HashMap<>();

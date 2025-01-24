@@ -12,7 +12,13 @@ import java.io.*;
  * and function body validation.
  */
 public class Sjavac {
+    /**
+     * Exit code for syntax error
+     */
     public static final int SYNTAX_ERROR_EXIT_CODE = 1;
+    /**
+     * Exit code for io error
+     */
     public static final int IO_ERROR_EXIT_CODE = 2;
 
     /**
@@ -44,7 +50,7 @@ public class Sjavac {
             fileProcessor.checkFunctionsBody();
         }
         catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
             System.exit(IO_ERROR_EXIT_CODE);
         }
     }

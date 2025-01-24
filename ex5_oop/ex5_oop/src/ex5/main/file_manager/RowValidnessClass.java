@@ -11,7 +11,8 @@ import static ex5.main.Sjavac.SYNTAX_ERROR_EXIT_CODE;
 public class RowValidnessClass {
 
     private static final String ERROR_UNSUPPORTED_COMMENT = "ERROR in line %d not supported comment value!";
-    private static final String ERROR_UNSUPPORTED_MIDDLE_COMMENT = "ERROR in line %d not supported comment value in the middle of the line!";
+    private static final String ERROR_UNSUPPORTED_MIDDLE_COMMENT = "ERROR in line %d not supported " +
+            "comment value in the middle of the line!";
     private static final String ERROR_INVALID_LINE_FORMAT = "ERROR in line %d invalid line Format";
 
     private static final String SUFFIX_PATTERN = ".*[;{}]\\s*$";
