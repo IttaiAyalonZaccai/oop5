@@ -5,29 +5,41 @@ import java.util.regex.PatternSyntaxException;
 
 public class SJavaValidator {
     // Method to check if a line matches the variable declaration format
+    // Regular expression for valid s-Java variable declaration
+    private static final String DECLARATION_REGEX =
+            "^\\s*(final\\s+)?(int|double|String|boolean|char)\\s+" +  // Type with optional 'final'
+                    "([a-zA-Z]\\w*\\s*(=\\s*[^,;]+)?\\s*,\\s*)*" +  // Multiple variables
+                    "[a-zA-Z_][a-zA-Z_\\d]*\\s*(=\\s*[^,;]+)?\\s*;\\s*$";     // Last variable and semicolon
+
+    private static final Pattern DECLARATION_PATTERN = Pattern.compile(DECLARATION_REGEX);
+
     public static boolean matchDeclarationFormat(String line) {
-        // Valid types in s-Java
-        String validTypes = "int|double|boolean|char|String";
-
-        // Matches variable names
-        String variableNamePattern = "[a-zA-Z_][a-zA-Z0-9_]*";
-        // Matches valid values (numbers, booleans, strings, characters, or variables)
-        String valuePattern = "\\d+(\\.\\d+)?|true|false|\"[^\"]*\"|'[^']'|" + variableNamePattern;
-        // Matches a single variable declaration (with optional initialization)
-        String singleVariablePattern = String.format("%s(\\s*=\\s*%s)?", variableNamePattern, valuePattern);
-        // Matches multiple variables in the same declaration (comma-separated)
-        String multipleVariablesPattern = String.format("%s(\\s*,\\s*%s)*", singleVariablePattern, singleVariablePattern);
-        // Matches a complete variable declaration line
-        String declarationPattern = String.format(
-                "^(final\\s+)?(%s)\\s+%s\\s*;$",
-                validTypes, multipleVariablesPattern
-        );
-
-        // Compile and match the regex
-        Pattern pattern = Pattern.compile(declarationPattern);
-        Matcher matcher = pattern.matcher(line);
+        Matcher matcher = DECLARATION_PATTERN.matcher(line);
         return matcher.matches();
     }
+//    public static boolean matchDeclarationFormat(String line) {
+//        // Valid types in s-Java
+//        String validTypes = "int|double|boolean|char|String";
+//
+//        // Matches variable names
+//        String variableNamePattern = "[a-zA-Z_][a-zA-Z0-9_]*";
+//        // Matches valid values (numbers, booleans, strings, characters, or variables)
+//        String valuePattern = "\\d+(\\.\\d+)?|true|false|\"[^\"]*\"|'[^']'|" + variableNamePattern;
+//        // Matches a single variable declaration (with optional initialization)
+//        String singleVariablePattern = String.format("%s(\\s*=\\s*%s)?", variableNamePattern, valuePattern);
+//        // Matches multiple variables in the same declaration (comma-separated)
+//        String multipleVariablesPattern = String.format("%s(\\s*,\\s*%s)*", singleVariablePattern, singleVariablePattern);
+//        // Matches a complete variable declaration line
+//        String declarationPattern = String.format(
+//                "^(final\\s+)?(%s)\\s+%s\\s*;$",
+//                validTypes, multipleVariablesPattern
+//        );
+//
+//        // Compile and match the regex
+//        Pattern pattern = Pattern.compile(declarationPattern);
+//        Matcher matcher = pattern.matcher(line);
+//        return matcher.matches();
+//    }
 
 
 
@@ -248,10 +260,10 @@ public class SJavaValidator {
                 "final x;",                    // Invalid: missing type
         };
 
-//        System.out.println("\nTesting Declaration Format:");
-//        for (String testCase : declarationTestCases) {
-//            System.out.println("Testing: " + testCase);
-//            System.out.println("Matches: " + matchDeclarationFormat(testCase));
-//        }
+        System.out.println("\nTesting Declaration Format:");
+        for (String testCase : declarationTestCases) {
+            System.out.println("Testing: " + testCase);
+            System.out.println("Matches: " + matchDeclarationFormat(testCase));
+        }
     }
 }

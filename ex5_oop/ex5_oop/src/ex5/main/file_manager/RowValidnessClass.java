@@ -77,9 +77,9 @@ public class RowValidnessClass {
     public static void checkLineFormat(String line, int lineIndex) {
         try {
 //            // is Declaration format:
-//            if (matchDeclarationFormat()) {
-//                return;
-//            }
+            if (SJavaValidator.matchDeclarationFormat(line)) {
+                return;
+            }
             // is Assignment format:
             if (SJavaValidator.matchAssignmentFormat(line)) {
                 return;
