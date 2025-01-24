@@ -44,6 +44,7 @@ public class GlobalVariables {
     public static final String STRING = "String";
     public static final int INT1 = 1;
     public static final String TO = " to ";
+    public static final String ASSIGNING_TO_VALUE_NULL = "assigning to value 'null'";
 
     private final List<String> linesArray;
     private final HashMap<String, Variable<?>> globalMap = new HashMap<>();
@@ -132,6 +133,9 @@ public class GlobalVariables {
     private Object validateValue(String type, String value) throws RuntimeException {
         if (globalMap.containsKey(value)) {
             Variable<?> sourceVar = globalMap.get(value);
+            if (sourceVar.getValue() == null) {
+                throw new RuntimeException(ASSIGNING_TO_VALUE_NULL);
+            }
             if (!type.equals(sourceVar.getType())) {
                 throw new RuntimeException(ERROR_TYPE_MISMATCH + sourceVar.getType() + TO + type);
             }
