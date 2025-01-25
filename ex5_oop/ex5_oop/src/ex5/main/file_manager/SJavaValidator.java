@@ -176,7 +176,7 @@ public class SJavaValidator {
         Matcher matcher = pattern.matcher(line);
         return matcher.matches();
     }
-
+}
 
 //    // Test the methods
 //    public static void main(String[] args) {
@@ -309,4 +309,4 @@ public class SJavaValidator {
 //            System.out.println("Matches: " + matchDeclarationFormat(testCase));
 //        }
 //    }
-}
+

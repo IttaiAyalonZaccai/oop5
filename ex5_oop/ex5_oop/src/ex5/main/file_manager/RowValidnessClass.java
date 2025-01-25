@@ -105,6 +105,7 @@ public class RowValidnessClass {
             }
             throw new RuntimeException(String.format(ERROR_INVALID_LINE_FORMAT, lineIndex));
         } catch (RuntimeException e) {
+            System.out.println(SYNTAX_ERROR_EXIT_CODE);
             System.out.println(e.getMessage());
             System.exit(SYNTAX_ERROR_EXIT_CODE);
         }

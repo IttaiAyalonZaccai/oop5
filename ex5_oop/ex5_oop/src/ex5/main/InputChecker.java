@@ -17,8 +17,6 @@ public class InputChecker {
      * Validates the input parameters provided to the program.
      * @param args The array of input arguments provided to the program.
      *             It should contain exactly one element: the file name.
-     * @throws IOException If the input validation fails due to an invalid number of parameters
-     *                     or an invalid file suffix.
      */
     public static void checkInputParameter(String[] args) {
         try {
@@ -30,6 +28,7 @@ public class InputChecker {
                 throw new IOException(INVALID_SUFFIX_ERROR);
             }
         } catch (IOException e) {
+            System.out.println(IO_ERROR_EXIT_CODE);
             System.out.println(e.getMessage());
             System.exit(IO_ERROR_EXIT_CODE);
         }

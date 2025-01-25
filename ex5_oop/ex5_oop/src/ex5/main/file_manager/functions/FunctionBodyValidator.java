@@ -2,6 +2,7 @@ package ex5.main.file_manager.functions;
 
 import ex5.main.Variable;
 import ex5.main.file_manager.RowValidnessClass;
+import ex5.main.file_manager.global_variables.GlobalVariables;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,7 +51,7 @@ public class FunctionBodyValidator {
     private static final String CLOSING_CURLY_BRACE = "{";
     private static final String INVALID_METHOD_DECLARATION = "Invalid method declaration: ";
     private static final String METHOD_DECLERATION_PATTERN =
-            "void\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*\\(.*\\)\\s*\\{";
+            "void\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*\\([^\\)]*\\)\\s*\\{";
     private static final String UNMATCHED_CLOSING_BRACE = "Unmatched closing brace.";
     private static final String IF = "if";
     private static final String WHILE = "while";
@@ -91,7 +92,11 @@ public class FunctionBodyValidator {
     private static final String CHAR = "char";
     private static final String STRING = "String";
     private static final String UNKNOWN_TYPE = "Unknown type: ";
-//    cllass variables
+    private static final String SPACE = " ";
+    private static final String ASSIGNING_VARIABLE_TO_NULL_REFERENCE = "assigning variable to null reference";
+    private static final int ASSIGNMENT_LENGTH = 2;
+    private static final int ONE = 1;
+    //    class variables
     private final List<String> linesArray;
     private final HashMap<String, Variable<?>> globalMap;
     private final HashMap<String, List<Map<String, Variable<Object>>>> functionsMap;
@@ -188,6 +193,7 @@ public class FunctionBodyValidator {
             // Step 3: Ensure Method Ends with Valid Return
             validateReturnStatement(methodLines.get(methodLines.size() - INT2).trim());
         } catch (RuntimeException e) {
+            System.out.println(SYNTAX_ERROR_EXIT_CODE);
             System.out.println(e.getMessage());
             System.exit(SYNTAX_ERROR_EXIT_CODE);
         }
@@ -362,8 +368,8 @@ public class FunctionBodyValidator {
 
 
     private void validateMethodLine(String line, Map<String, Variable<?>> localVariables, Map<String,
-            Variable<?>> outerVariables) {
-        if (line.matches(".*;")) { // todo maybe redundant
+            Variable<?>> outerVariables) throws RuntimeException{
+        if (line.matches(".*;")) {
             if (RowValidnessClass.isInMethodAssignment(line)) {
                 validateAssignment(line, localVariables, outerVariables);
             } else if (line.matches(INT_DOUBLE_BOOLEAN_CHAR_STRING)) {
@@ -417,7 +423,18 @@ public class FunctionBodyValidator {
         return validateLiteral(value); // Logic for literal validation
     }
 
-    private Object validateLiteral(String value) {
+//    private Variable resolveValueAsVariable(String value, Map<String, Variable<?>> localVariables,
+//                                Map<String, Variable<?>> globalMap) {
+//        if (localVariables.containsKey(value)) {
+//            return localVariables.get(value);
+//        }
+//        if (globalMap.containsKey(value)) {
+//            return globalMap.get(value);
+//        }
+//        return new Variable(validateLiteral(value)); // Logic for literal validation
+//    }
+
+    private Object validateLiteral(String value) throws RuntimeException {
         // Match against type-specific patterns
         if (value.matches(INT_PATTERN)) {
             return Integer.parseInt(value);
@@ -434,7 +451,6 @@ public class FunctionBodyValidator {
         if (value.matches(STRING_PATTERN)) {
             return value.substring(INT1, value.length() - INT1); // Remove quotes
         }
-
         throw new RuntimeException(INVALID_LITERAL_VALUE + value);
     }
 
@@ -467,9 +483,8 @@ public class FunctionBodyValidator {
         }
     }
 
-    private void validateVariableDeclaration(String line, Map<String, Variable<?>> localVariables) {
-
-
+    private void validateVariableDeclaration(String line, Map<String, Variable<?>> localVariables)
+            throws RuntimeException{
         if (!line.matches(DECLERATION_PATTERN)) {
             throw new RuntimeException(INVALID_VARIABLE_DECLARATION_EXCEPTION + line);
         }
@@ -477,25 +492,37 @@ public class FunctionBodyValidator {
         // Extract components
         String[] parts = line.split(SPLIT_FORMAT, SPLIT_LIMIT);
         boolean isFinal = parts[0].equals(FINAL_KEY_WORD);
-        String type = isFinal ? parts[INT1] : parts[0];
-        String variables = isFinal ? parts[INT2] : parts[INT1];
+        String type = isFinal ? parts[INT1] : parts[0]; // get the type of the assignment
+        String variables = isFinal ? parts[INT2] : parts[INT1]; // get if the assignment is final
 
-        // Handle multiple variables separated by commas
-        String[] declarations = variables.split(REGEX_WORD_WORD);
+        String[] declarations = line.split(REGEX_WORD_WORD);
+        if (isFinal) {
+            declarations[0] = declarations[0].replace(FINAL_KEY_WORD, EMPTY);
+        }
+        declarations[0] = declarations[0].replace(type+ SPACE, EMPTY);
+        declarations[declarations.length - ONE] =
+                declarations[declarations.length - ONE].replace(SENICOLON, EMPTY).trim();
         for (String declaration : declarations) {
             String[] nameValue = declaration.split(REGEX_WORD_SPACE_WORD);
             String name = nameValue[0];
-
             if (localVariables.containsKey(name)) {
                 throw new RuntimeException(DUPLICATE_VARIABLE_NAME_IN_LOCAL_SCOPE + name);
             }
 
-            Object resolvedValue = null;
-            if (nameValue.length > INT1) {
-                resolvedValue = resolveValue(nameValue[INT1], localVariables, null);
+            Object resolvedValue;
+            boolean isThereAnAssignment = nameValue.length == ASSIGNMENT_LENGTH;
+            if (isThereAnAssignment) {
+                String valueAsString = nameValue[ONE];
+                // get the referenced value ani caze haham
+                resolvedValue = resolveValue(valueAsString, localVariables, this.globalMap);
+                if (resolvedValue == null)
+                    throw new RuntimeException(ASSIGNING_VARIABLE_TO_NULL_REFERENCE);
+                // Dynamically check type compatibility
+                if (!isTypeCompatible(type.trim(), resolvedValue)) {
+                    throw new RuntimeException(TYPE_MISMATCH_FOR_VARIABLE + name);
+                }
+                localVariables.put(name, new Variable<>(resolvedValue, type, isFinal));
             }
-
-            localVariables.put(name, new Variable<>(resolvedValue, type, isFinal));
         }
     }
 

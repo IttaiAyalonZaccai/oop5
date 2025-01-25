@@ -1,5 +1,14 @@
 yoav_kn,ittai.ayalon
 211723937,318229937
 
-1.
-regex explenation
+regexes explanations:
+We used the following pattern to validate method decleration format:
+"void\\s+([a-zA-Z][a-zA-Z0-9_]*)\\s*\\([^\\)]*\\)\\s*\\{"
+The Definition of the pattern is (+ represents concatenation): void + at least one space +
+ ( +  method name (a letter and then zero or several accurance of )
+letters or digits or _ ) + zero or several spaces + zero or several times every character except ( + ) +
+zero or several spaces + {
+
+this is a variable name pattern:
+"[a-zA-Z_][a-zA-Z0-9_]*"
+The Definition of the pattern is: single letter or _ + zero or several times digit, letter or _.

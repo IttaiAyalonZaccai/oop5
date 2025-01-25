@@ -20,6 +20,7 @@ public class Sjavac {
      * Exit code for io error
      */
     public static final int IO_ERROR_EXIT_CODE = 2;
+    private static final int SUCCESS_EXIT_CODE = 0;
 
     /**
      * Main method to process and validate an s-Java file.
@@ -50,8 +51,10 @@ public class Sjavac {
             fileProcessor.checkFunctionsBody();
         }
         catch (IOException e) {
+            System.out.println(IO_ERROR_EXIT_CODE);
             System.out.println(e.getMessage());
             System.exit(IO_ERROR_EXIT_CODE);
         }
+        System.out.println(SUCCESS_EXIT_CODE);
     }
 }

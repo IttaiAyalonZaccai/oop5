@@ -57,6 +57,7 @@ public class FileProcessor{
                 RowValidnessClass.checkMiddleComments(line, lineIndex);
                 RowValidnessClass.checkLineFormat(line, lineIndex);
             } catch (RuntimeException e) {
+                System.out.println(SYNTAX_ERROR_EXIT_CODE);
                 System.out.println(e.getMessage());
                 System.exit(SYNTAX_ERROR_EXIT_CODE);
             }
@@ -72,6 +73,7 @@ public class FileProcessor{
         globalVariables.validAndCreateGlobalMap();
         }
         catch (RuntimeException e) {
+            System.out.println(SYNTAX_ERROR_EXIT_CODE);
             System.out.println(e.getMessage());
             System.exit(SYNTAX_ERROR_EXIT_CODE);
         }
@@ -87,6 +89,7 @@ public class FileProcessor{
             functionNames.getAllFunctionsNames();
         }
         catch (RuntimeException e) {
+            System.out.println(SYNTAX_ERROR_EXIT_CODE);
             System.out.println(e.getMessage());
             System.exit(SYNTAX_ERROR_EXIT_CODE);
         }
@@ -101,6 +104,5 @@ public class FileProcessor{
                                                                                 globalMap,
                                                                                 functionsMap);
         functionBodyValidator.processAllMethods();
-
     }
 }
