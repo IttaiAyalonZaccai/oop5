@@ -74,7 +74,7 @@ public class FunctionBodyValidator {
     private static final String BOOLEAN = "boolean";
     private static final String INT = "int";
     private static final String DOUBLE = "double";
-    private static final String INT_DOUBLE_BOOLEAN_CHAR_STRING = "(int|double|boolean|char|String).*";
+    private static final String INT_DOUBLE_BOOLEAN_CHAR_STRING = "(int|double|boolean|char|String|final).*";
     private static final String INVALID_LINE = "Invalid line: ";
     private static final String SENICOLON = ";";
     private static final String EMPTY = "";
@@ -96,6 +96,7 @@ public class FunctionBodyValidator {
     private static final String ASSIGNING_VARIABLE_TO_NULL_REFERENCE = "assigning variable to null reference";
     private static final int ASSIGNMENT_LENGTH = 2;
     private static final int ONE = 1;
+    private static final String FINAL_WITHOUT_ININTIALIZATION_ERROR = "Final without inintialization error";
     //    class variables
     private final List<String> linesArray;
     private final HashMap<String, Variable<?>> globalMap;
@@ -522,6 +523,8 @@ public class FunctionBodyValidator {
                     throw new RuntimeException(TYPE_MISMATCH_FOR_VARIABLE + name);
                 }
                 localVariables.put(name, new Variable<>(resolvedValue, type, isFinal));
+            } else if (isFinal) {
+                throw new RuntimeException(FINAL_WITHOUT_ININTIALIZATION_ERROR);
             }
         }
     }

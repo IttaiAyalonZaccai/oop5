@@ -45,6 +45,9 @@ public class GlobalVariables {
     private static final int INT1 = 1;
     private static final String TO = " to ";
     private static final String ASSIGNING_TO_VALUE_NULL = "assigning to value 'null'";
+    private static final String S_S = "\\s*,\\s*";
+    private static final String S_S1 = "\\s*=\\s*";
+    private static final String FINAL_WITHOUT_INITIALIZATION = "final without initialization";
 
     private final List<String> linesArray;
     private final HashMap<String, Variable<?>> globalMap = new HashMap<>();
@@ -110,9 +113,9 @@ public class GlobalVariables {
         String type = matcher.group(2);
         String variables = matcher.group(3);
 
-        String[] variableParts = variables.split("\\s*,\\s*");
+        String[] variableParts = variables.split(S_S);
         for (String varPart : variableParts) {
-            String[] nameValue = varPart.split("\\s*=\\s*");
+            String[] nameValue = varPart.split(S_S1);
             String name = nameValue[0];
             String value = nameValue.length > INT1 ? nameValue[INT1] : null;
 
@@ -126,6 +129,9 @@ public class GlobalVariables {
             }
 
             Variable<Object> variable = new Variable<>(resolvedValue, type, isFinal);
+            if (isFinal && variable.getValue() == null) {
+                throw new RuntimeException(FINAL_WITHOUT_INITIALIZATION);
+            }
             globalMap.put(name, variable);
         }
     }
