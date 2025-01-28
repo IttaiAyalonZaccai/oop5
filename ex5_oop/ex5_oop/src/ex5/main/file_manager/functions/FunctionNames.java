@@ -25,7 +25,11 @@ public class FunctionNames {
             "[a-zA-Z]\\w*\\s*)(,\\s*(int|double|boolean|char|String)\\s+[a-zA-Z]\\w*\\s*)*)?\\)\\s*\\{\\s*$";
     private static final String SPLIT_PATTERN = "\\("; // Split into left and right parts at the first '('
     private static final String VAR_TYPES = "int|double|boolean|char|String";
-
+    private static final int ONE = 1;
+    private static final int TWO = 2;
+    private static final String COMA_SEPEREOR_PATTERN = "\\s*,\\s*";
+    private static final String SPACES_PATTERN = "\\s+";
+    //    private fields
     private final int linesNumber;
     private final HashMap<String, List<Map<String, Variable<Object>>>> functionsMap = new HashMap<>();
     private final List<String> linesArray;
@@ -46,8 +50,8 @@ public class FunctionNames {
      * @throws RuntimeException if a function declaration is invalid.
      */
     public void getAllFunctionsNames() throws RuntimeException {
-        for (int i = 0; i < linesNumber; i++) {
-            String line = linesArray.get(i);
+        for (int index = 0; index < linesNumber; index++) {
+            String line = linesArray.get(index);
             if (RowValidnessClass.isStartFunction(line)) {
                 checkFunctionDeclaration(line);
             }
@@ -64,12 +68,12 @@ public class FunctionNames {
     }
 
     private void checkFunctionDeclaration(String line) throws RuntimeException {
-        String[] splitted = line.split(SPLIT_PATTERN, 2);
-        if (splitted.length != 2) {
+        String[] splitted = line.split(SPLIT_PATTERN, TWO);
+        if (splitted.length != TWO) {
             throw new RuntimeException(ERROR_INVALID_DECLARATION);
         }
         String functionLeftPart = splitted[0];
-        String functionRightPart = splitted[1].trim();
+        String functionRightPart = splitted[ONE].trim();
 
         Pattern leftPattern = Pattern.compile(FUNCTION_DECLARATION_PATTERN);
         Matcher matcher = leftPattern.matcher(functionLeftPart);
@@ -77,7 +81,7 @@ public class FunctionNames {
             throw new RuntimeException(ERROR_INVALID_SYNTAX + line);
         }
 
-        String functionName = matcher.group(1);
+        String functionName = matcher.group(ONE);
 
         if (functionsMap.containsKey(functionName)) {
             throw new RuntimeException(ERROR_DUPLICATE_FUNCTION + functionName);
@@ -93,15 +97,16 @@ public class FunctionNames {
         List<Map<String, Variable<Object>>> parameterList = new ArrayList<>();
 
         if (paramList != null && !paramList.isEmpty()) {
-            String[] params = paramList.split("\\s*,\\s*");
+            String[] params = paramList.split(COMA_SEPEREOR_PATTERN);
             for (String param : params) {
-                String[] paramParts = param.trim().split("\\s+");
-                if (paramParts.length != 2) {
+                String[] paramParts = param.trim().split(SPACES_PATTERN);
+                if (paramParts.length != TWO) {
                     throw new RuntimeException(ERROR_INVALID_PARAMETER + param);
                 }
 
                 String paramType = paramParts[0];
-                String paramName = paramParts[1];
+
+                String paramName = paramParts[ONE];
                 if (!paramType.matches(VAR_TYPES)) {
                     throw new RuntimeException(ERROR_INVALID_PARAMETER_TYPE + paramType);
                 }

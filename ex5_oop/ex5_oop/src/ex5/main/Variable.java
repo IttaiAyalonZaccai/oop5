@@ -11,6 +11,7 @@ public class Variable<T> {
     private static final String TO_STR_FORMAT_TYPE = ", type='";
     private static final String TO_STR_FORMAT_FINAL = ", isFinal=";
     private static final char CLOSE_BRACE = '}';
+    private static final char SKIP_LINE = '\'';
     private final T value;
     private final String type;
     private final boolean isFinal;
@@ -60,7 +61,7 @@ public class Variable<T> {
     public String toString() {
         return TO_STR_FORMAT_VARIABLE +
                 TO_STR_FORMAT_VALUE + value +
-                TO_STR_FORMAT_TYPE + type + '\'' +
+                TO_STR_FORMAT_TYPE + type + SKIP_LINE +
                 TO_STR_FORMAT_FINAL + isFinal +
                 CLOSE_BRACE;
     }

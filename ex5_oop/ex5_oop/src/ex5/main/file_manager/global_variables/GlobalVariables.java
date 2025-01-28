@@ -25,7 +25,7 @@ public class GlobalVariables {
     private static final String ERROR_INVALID_STRING = "Invalid value for type String: ";
 
     private static final String VALID_TYPES = "int|double|boolean|char|String";
-    private static final String VARIABLE_NAME_PATTERN = "[a-zA-Z_][a-zA-Z0-9_]*";
+    private static final String VARIABLE_NAME_PATTERN = "_[a-zA-Z0-9_]+|[a-zA-Z][a-zA-Z0-9_]*";
     private static final String VALUE_PATTERN = ".*";
     private static final String INT_PATTERN = "-?\\d+";
     private static final String DOUBLE_PATTERN = "-?\\d*\\.\\d+|-?\\d+\\.\\d*|-?\\d+";
@@ -111,7 +111,7 @@ public class GlobalVariables {
 
         boolean isFinal = matcher.group(INT1) != null;
         String type = matcher.group(2);
-        String variables = matcher.group(3);
+        String variables = matcher.group(3).trim();
 
         String[] variableParts = variables.split(S_S);
         for (String varPart : variableParts) {

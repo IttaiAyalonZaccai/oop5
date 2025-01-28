@@ -16,6 +16,7 @@ import static ex5.main.Sjavac.SYNTAX_ERROR_EXIT_CODE;
  * and handles comments and blank lines.
  */
 public class FileProcessor{
+    private static final String ENPTYROW_OR_ERROR_PATTERN = "//.*|\\s*";
     //    constants
     private final List<String> linesArray;
     private int linesNumber = 0;
@@ -38,7 +39,7 @@ public class FileProcessor{
         }
 
         // remove empty or comment lines
-        Pattern pattern = Pattern.compile("//.*|\\s*");
+        Pattern pattern = Pattern.compile(ENPTYROW_OR_ERROR_PATTERN);
         linesArray.removeIf(line1 -> pattern.matcher(line1).matches());
         linesNumber = linesArray.size();
         preprocessCheckLineValidity();

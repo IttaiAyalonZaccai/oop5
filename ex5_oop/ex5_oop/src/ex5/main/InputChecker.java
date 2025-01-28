@@ -12,6 +12,7 @@ public class InputChecker {
     private static final String PARAMETERS_NUMBER_ERROR = "Invalid number of parameters.";
     private static final String INVALID_SUFFIX_ERROR = "File type is not .sjava.";
     private static final String SJAVA_VALID_SUFFIX = ".sjava";
+    private static final int VALID_COMMAND_LINE_ARGS_NUMBER = 1;
 
     /**
      * Validates the input parameters provided to the program.
@@ -20,7 +21,7 @@ public class InputChecker {
      */
     public static void checkInputParameter(String[] args) {
         try {
-            if (args.length != 1) {
+            if (args.length != VALID_COMMAND_LINE_ARGS_NUMBER) {
                 throw new IOException(PARAMETERS_NUMBER_ERROR);
             }
             String fileName = args[0];

@@ -54,6 +54,7 @@ public class SJavaValidator {
     private static final String CLOSING_PARENTHESIS = ")\\s+";
     private static final String VOID = "^\\s*void\\s+";
     private static final String END_OF_METHOD_DECLARATION = ")?\\s*\\)\\s*\\{\\s*$";
+    private static final String CLOSE_PARENTHESISE = ")";
 
     /**
      * Matches a given line against the variable declaration format (including optional
@@ -135,7 +136,7 @@ public class SJavaValidator {
         // Parameter regex
         String parameter =
                 OPEN_BRACKET + METHOD_IDENTIFIER + OR + NUMERIC_CONST + OR + STRING_LITERAL
-                        + OR + CHAR_LITERAL + ")";
+                        + OR + CHAR_LITERAL + CLOSE_PARENTHESISE;
         // Parameters list: optional first parameter, followed by zero or more comma-separated parameters
         String parameters = parameter + ZERO_OR_MORE_COMMA_SEPARATED + parameter + CLOSE_REG_BRACE;
         // Full method call regex
@@ -177,136 +178,3 @@ public class SJavaValidator {
         return matcher.matches();
     }
 }
-
-//    // Test the methods
-//    public static void main(String[] args) {
-//        // Test cases for method call format
-//        String[] methodCallTestCases = {
-//                "foo();",                       // Valid
-//                "bar(5, \"hello\", varName);", // Valid
-//                "doSomething(  );",             // Valid
-//                "123foo();",                    // Invalid: method name
-//                "foo(,);",                      // Invalid: empty parameter
-//                "method(5,,6);"                 // Invalid: extra comma
-//        };
-//
-//        System.out.println("Testing Method Call Format:");
-//        for (String testCase : methodCallTestCases) {
-//            System.out.println("Testing: " + testCase);
-//            System.out.println("Matches: " + matchMethodCallFormat(testCase));
-//        }
-//
-//        // Test cases for method declaration format
-//        String[] methodDeclarationTestCases = {
-//                "void myMethod() {",                     // Valid
-//                "void compute(int x, double y) {",       // Valid
-//                "void doSomething(final boolean flag) {", // Valid
-//                "int myMethod() {",                      // Invalid: not void
-//                "void method(abc) {",                 // Invalid: invalid parameter name
-//                "void method {"                          // Invalid: missing parentheses
-//        };
-//
-//        System.out.println("\nTesting Method Declaration Format:");
-//        for (String testCase : methodDeclarationTestCases) {
-//            System.out.println("Testing: " + testCase);
-//            System.out.println("Matches: " + matchMethodDeclarationFormat(testCase));
-//        }
-//
-//        // Test cases for return statement format
-//        String[] returnTestCases = {
-//                "return;",
-//                " return ; ",
-//                "return  ;",
-//                "return",
-//                "return something;",
-//                "return ; extra"
-//        };
-//
-//        System.out.println("\nTesting Return Statement Format:");
-//        for (String testCase : returnTestCases) {
-//            System.out.println("Testing: " + testCase);
-//            System.out.println("Matches: " + matchReturnFormat(testCase));
-//        }
-//
-//        // Test cases for end-of-scope format
-//        String[] endOfScopeTestCases = {
-//                "}",          // Valid
-//                " } ",        // Valid: extra spaces
-//                "   }",       // Valid: spaces before
-//                "}",          // Valid
-//                "} extra",    // Invalid: additional content
-//                "{",          // Invalid: opening brace
-//                "",           // Invalid: empty line
-//                "// }",       // Invalid: comment line
-//        };
-//
-//        System.out.println("\nTesting End-of-Scope Format:");
-//        for (String testCase : endOfScopeTestCases) {
-//            System.out.println("Testing: " + testCase);
-//            System.out.println("Matches: " + matchEndOfScopeFormat(testCase));
-//        }
-//
-//        // Test cases for if/while format
-//        String[] ifWhileTestCases = {
-//                "if (true) {",
-//                "while (false) {",
-//                "if (x) {",
-//                "while (5.2) {",
-//                "if (true && x || 5) {",
-//                "if (true &&) {",
-//                "if () {",
-//                "if (a && b || ) {",
-//                "if ((x) && y) {",
-//                "while true) {",
-//                "if (true) {}",
-//        };
-//
-//        System.out.println("\nTesting If/While Format:");
-//        for (String testCase : ifWhileTestCases) {
-//            System.out.println("Testing: " + testCase);
-//            System.out.println("Matches: " + matchIfWhileFormat(testCase));
-//        }
-//
-//        // Test cases for assignment format
-//        String[] assignmentTestCases = {
-//                "x = 5;",                  // Valid
-//                "x = y;",                  // Valid
-//                "x = true;",               // Valid
-//                "x = \"hello\";",          // Valid
-//                "x = 'c';",                // Valid
-//                "x = 5, y = 10;",          // Valid: multiple assignments
-//                "  x  =  5 ,  y  = 10  ;", // Valid: extra spaces
-//                "x y = 5;",                // Invalid: missing comma
-//                "x = 5, = 10;",            // Invalid: missing identifier
-//                "x =;",                    // Invalid: missing value
-//                "= 5;",                    // Invalid: missing identifier
-//                "x = 5"                    // Invalid: missing semicolon
-//        };
-//
-//        System.out.println("\nTesting Assignment Format:");
-//        for (String testCase : assignmentTestCases) {
-//            System.out.println("Testing: " + testCase);
-//            System.out.println("Matches: " + matchAssignmentFormat(testCase));
-//        }
-//
-//        // Test cases for variable declaration format
-//        String[] declarationTestCases = {
-//                "int x;",                      // Valid: simple declaration
-//                "double x = 5.5;",             // Valid: initialized declaration
-//                "final boolean flag = true;",  // Valid: final declaration
-//                "char a, b = 'c';",            // Valid: multiple declarations
-//                "String s = \"hello\", t;",    // Valid: mixed initialization
-//                "int 123x;",                   // Invalid: variable starts with digit
-//                "float x;",                    // Invalid: unsupported type
-//                "boolean a = false, = true;",  // Invalid: missing variable name
-//                "int a, b,;",                  // Invalid: trailing comma
-//                "final x;",                    // Invalid: missing type
-//        };
-//
-//        System.out.println("\nTesting Declaration Format:");
-//        for (String testCase : declarationTestCases) {
-//            System.out.println("Testing: " + testCase);
-//            System.out.println("Matches: " + matchDeclarationFormat(testCase));
-//        }
-//    }
-
