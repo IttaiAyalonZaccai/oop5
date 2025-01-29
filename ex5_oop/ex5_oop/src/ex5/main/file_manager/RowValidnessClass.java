@@ -25,13 +25,13 @@ public class RowValidnessClass {
      *
      * @param line        The line to check.
      * @param lineCounter The line number being validated.
-     * @throws RuntimeException If the line does not end with a valid suffix.
+     * @throws SyntaxException If the line does not end with a valid suffix.
      */
-    public static void checkSuffixes(String line, int lineCounter) throws RuntimeException {
+    public static void checkSuffixes(String line, int lineCounter) throws SyntaxException {
         Pattern pattern = Pattern.compile(SUFFIX_PATTERN);
         Matcher mac = pattern.matcher(line);
         if (!mac.matches()) {
-            throw new RuntimeException(String.format(ERROR_UNSUPPORTED_COMMENT, lineCounter));
+            throw new SyntaxException(String.format(ERROR_UNSUPPORTED_COMMENT, lineCounter));
         }
     }
 
@@ -40,13 +40,13 @@ public class RowValidnessClass {
      *
      * @param line        The line to check.
      * @param lineCounter The line number being validated.
-     * @throws RuntimeException If comments are found in the middle of the line.
+     * @throws SyntaxException If comments are found in the middle of the line.
      */
-    public static void checkMiddleComments(String line, int lineCounter) throws RuntimeException {
+    public static void checkMiddleComments(String line, int lineCounter) throws SyntaxException {
         Pattern pattern = Pattern.compile(MIDDLE_COMMENT_PATTERN);
         Matcher matcher = pattern.matcher(line);
         if (matcher.find()) {
-            throw new RuntimeException(String.format(ERROR_UNSUPPORTED_MIDDLE_COMMENT, lineCounter));
+            throw new SyntaxException(String.format(ERROR_UNSUPPORTED_MIDDLE_COMMENT, lineCounter));
         }
     }
 
@@ -103,8 +103,8 @@ public class RowValidnessClass {
             if (SJavaValidator.matchReturnFormat(line)) {
                 return;
             }
-            throw new RuntimeException(String.format(ERROR_INVALID_LINE_FORMAT, lineIndex));
-        } catch (RuntimeException e) {
+            throw new SyntaxException(String.format(ERROR_INVALID_LINE_FORMAT, lineIndex));
+        } catch (SyntaxException e) {
             System.out.println(SYNTAX_ERROR_EXIT_CODE);
             System.out.println(e.getMessage());
             System.exit(SYNTAX_ERROR_EXIT_CODE);

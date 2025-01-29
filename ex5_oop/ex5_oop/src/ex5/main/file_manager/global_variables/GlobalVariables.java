@@ -1,6 +1,7 @@
 package ex5.main.file_manager.global_variables;
 
 import ex5.main.Variable;
+import ex5.main.file_manager.SyntaxException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -73,9 +74,9 @@ public class GlobalVariables {
     /**
      * Validates and creates the global variable map from the given lines of code.
      *
-     * @throws RuntimeException if there are unmatched braces or invalid declarations.
+     * @throws SyntaxException if there are unmatched braces or invalid declarations.
      */
-    public void validAndCreateGlobalMap() throws RuntimeException {
+    public void validAndCreateGlobalMap() throws SyntaxException {
         int scopeLevel = 0;
         for (String line : linesArray) {
             line = line.trim();
@@ -87,7 +88,7 @@ public class GlobalVariables {
                 if (scopeLevel > 0) {
                     scopeLevel--;
                 } else {
-                    throw new RuntimeException(ERROR_UNMATCHED_CLOSING_BRACE);
+                    throw new SyntaxException(ERROR_UNMATCHED_CLOSING_BRACE);
                 }
                 continue;
             }
@@ -96,17 +97,17 @@ public class GlobalVariables {
             }
         }
         if (scopeLevel != 0) {
-            throw new RuntimeException(ERROR_UNMATCHED_OPENING_BRACE);
+            throw new SyntaxException(ERROR_UNMATCHED_OPENING_BRACE);
         }
     }
 
-    private void validateAndAddGlobalVariable(String line) throws RuntimeException {
+    private void validateAndAddGlobalVariable(String line) throws SyntaxException {
         line = line.trim();
         Pattern pattern = Pattern.compile(DECLARATION_PATTERN);
         Matcher matcher = pattern.matcher(line);
 
         if (!matcher.matches()) {
-            throw new RuntimeException(ERROR_INVALID_DECLARATION + line);
+            throw new SyntaxException(ERROR_INVALID_DECLARATION + line);
         }
 
         boolean isFinal = matcher.group(INT1) != null;
@@ -120,7 +121,7 @@ public class GlobalVariables {
             String value = nameValue.length > INT1 ? nameValue[INT1] : null;
 
             if (globalMap.containsKey(name)) {
-                throw new RuntimeException(ERROR_DUPLICATE_VARIABLE + name);
+                throw new SyntaxException(ERROR_DUPLICATE_VARIABLE + name);
             }
 
             Object resolvedValue = null;
@@ -130,20 +131,20 @@ public class GlobalVariables {
 
             Variable<Object> variable = new Variable<>(resolvedValue, type, isFinal);
             if (isFinal && variable.getValue() == null) {
-                throw new RuntimeException(FINAL_WITHOUT_INITIALIZATION);
+                throw new SyntaxException(FINAL_WITHOUT_INITIALIZATION);
             }
             globalMap.put(name, variable);
         }
     }
 
-    private Object validateValue(String type, String value) throws RuntimeException {
+    private Object validateValue(String type, String value) throws SyntaxException {
         if (globalMap.containsKey(value)) {
             Variable<?> sourceVar = globalMap.get(value);
             if (sourceVar.getValue() == null) {
-                throw new RuntimeException(ASSIGNING_TO_VALUE_NULL);
+                throw new SyntaxException(ASSIGNING_TO_VALUE_NULL);
             }
             if (!type.equals(sourceVar.getType())) {
-                throw new RuntimeException(ERROR_TYPE_MISMATCH + sourceVar.getType() + TO + type);
+                throw new SyntaxException(ERROR_TYPE_MISMATCH + sourceVar.getType() + TO + type);
             }
             return sourceVar.getValue();
         }
@@ -153,13 +154,13 @@ public class GlobalVariables {
                 if (value.matches(INT_PATTERN)) {
                     return Integer.parseInt(value);
                 }
-                throw new RuntimeException(ERROR_INVALID_INT + value);
+                throw new SyntaxException(ERROR_INVALID_INT + value);
 
             case DOUBLE:
                 if (value.matches(DOUBLE_PATTERN)) {
                     return Double.parseDouble(value);
                 }
-                throw new RuntimeException(ERROR_INVALID_DOUBLE + value);
+                throw new SyntaxException(ERROR_INVALID_DOUBLE + value);
 
             case BOOLEAN:
                 if (value.matches(BOOLEAN_PATTERN)) {
@@ -168,22 +169,22 @@ public class GlobalVariables {
                 if (value.matches(DOUBLE_PATTERN)) {
                     return Double.parseDouble(value) != 0;
                 }
-                throw new RuntimeException(ERROR_INVALID_BOOLEAN + value);
+                throw new SyntaxException(ERROR_INVALID_BOOLEAN + value);
 
             case CHAR:
                 if (value.matches(CHAR_PATTERN)) {
                     return value.charAt(INT1);
                 }
-                throw new RuntimeException(ERROR_INVALID_CHAR + value);
+                throw new SyntaxException(ERROR_INVALID_CHAR + value);
 
             case STRING:
                 if (value.matches(STRING_PATTERN)) {
                     return value.substring(INT1, value.length() - INT1);
                 }
-                throw new RuntimeException(ERROR_INVALID_STRING + value);
+                throw new SyntaxException(ERROR_INVALID_STRING + value);
 
             default:
-                throw new RuntimeException(ERROR_UNKNOWN_TYPE + type);
+                throw new SyntaxException(ERROR_UNKNOWN_TYPE + type);
         }
     }
 }

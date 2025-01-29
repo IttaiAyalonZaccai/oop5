@@ -204,7 +204,7 @@ public class FunctionBodyValidator {
                     new HashMap<>(), true);
             // Step 3: Ensure Method Ends with Valid Return
             validateReturnStatement(methodLines.get(methodLines.size() - INT2).trim());
-        } catch (RuntimeException e) {
+        } catch (FunctionSyntaxException e) {
             System.out.println(SYNTAX_ERROR_EXIT_CODE);
             System.out.println(e.getMessage());
             System.exit(SYNTAX_ERROR_EXIT_CODE);
@@ -217,7 +217,7 @@ public class FunctionBodyValidator {
         List<Map<String, Variable<Object>>> parameterList = functionsMap.get(methodName);
 
         if (parameterList == null) {
-            throw new RuntimeException(METHOD_NOT_FOUND_IN_FUNCTIONS_MAP + methodName);
+            throw new FunctionSyntaxException(METHOD_NOT_FOUND_IN_FUNCTIONS_MAP + methodName);
         }
 
         // Add each parameter to the localVariables map
@@ -228,7 +228,7 @@ public class FunctionBodyValidator {
 
                 // Ensure no duplicate parameter names in local scope
                 if (localVariables.containsKey(paramName)) {
-                    throw new RuntimeException(DUPLICATE_PARAMETER_NAME_IN_METHOD + methodName);
+                    throw new FunctionSyntaxException(DUPLICATE_PARAMETER_NAME_IN_METHOD + methodName);
                 }
 
                 // give default value, in order to avoid null assignment error:
@@ -244,7 +244,7 @@ public class FunctionBodyValidator {
     private void validateMethodBody(List<String> bodyLines, Map<String, Variable<?>> localVariables,
                                     Map<String, Variable<?>> outerVariables,
                                     boolean expectReturn)
-            throws RuntimeException {
+            throws FunctionSyntaxException {
         int braceBalance = 0;
         int currentLine = 0;
         String line;
@@ -256,7 +256,7 @@ public class FunctionBodyValidator {
             if (line.contains(CLOSING_CURLY_BARCE)) braceBalance--;
 
             if (braceBalance < 0) {
-                throw new RuntimeException(UNMATCHED_CLOSING_BRACE);
+                throw new FunctionSyntaxException(UNMATCHED_CLOSING_BRACE);
             }
 
             if (line.startsWith(IF) || line.startsWith(WHILE)) {
@@ -272,14 +272,14 @@ public class FunctionBodyValidator {
         }
 
         if (braceBalance != 0) {
-            throw new RuntimeException(UNMATCHED_OPENING_BRACE);
+            throw new FunctionSyntaxException(UNMATCHED_OPENING_BRACE);
         }
 
         // Check for a return statement if expected
         if (expectReturn) {
             String lastLine = bodyLines.get(bodyLines.size() - INT1).trim();
             if (!lastLine.equals(RETURN_AND_END_LINE)) {
-                throw new RuntimeException(MISSING_RETURN_STATEMENT_AT_THE_END_OF_THE_METHOD);
+                throw new FunctionSyntaxException(MISSING_RETURN_STATEMENT_AT_THE_END_OF_THE_METHOD);
             }
         }
     }
@@ -289,7 +289,7 @@ public class FunctionBodyValidator {
             Variable<?>> localVariables) {
         String conditionalPattern = CONDITIONAL_PATTERN;
         if (!line.matches(conditionalPattern)) {
-            throw new RuntimeException(INVALID_CONDITIONAL_BLOCK + line);
+            throw new FunctionSyntaxException(INVALID_CONDITIONAL_BLOCK + line);
         }
 
         // Extract and validate the condition expression
@@ -322,7 +322,7 @@ public class FunctionBodyValidator {
             currentLine++;
         }
 
-        throw new RuntimeException(UNMATCHED_OPENING_BRACE_FOR_CONDITIONAL_BLOCK);
+        throw new FunctionSyntaxException(UNMATCHED_OPENING_BRACE_FOR_CONDITIONAL_BLOCK);
     }
 
     private void validateCondition(String condition, Map<String, Variable<?>> localVariables,
@@ -333,7 +333,7 @@ public class FunctionBodyValidator {
         for (String subCondition : subConditions) {
             subCondition = subCondition.trim();
             if (subCondition.isEmpty()) {
-                throw new RuntimeException(EMPTY_CONDITION_ECXEPTION + condition);
+                throw new FunctionSyntaxException(EMPTY_CONDITION_ECXEPTION + condition);
             }
 
             // Check if the subCondition is a literal (boolean, int, or double)
@@ -345,15 +345,15 @@ public class FunctionBodyValidator {
             if (localVariables.containsKey(subCondition)) {
                 Variable<?> variable = localVariables.get(subCondition);
                 if (!isValidConditionType(variable)) {
-                    throw new RuntimeException(INVALID_VARIABLE_TYPE_EXCEPTION + subCondition);
+                    throw new FunctionSyntaxException(INVALID_VARIABLE_TYPE_EXCEPTION + subCondition);
                 }
             } else if (globalVariables.containsKey(subCondition)) {
                 Variable<?> variable = globalVariables.get(subCondition);
                 if (!isValidConditionType(variable)) {
-                    throw new RuntimeException(INVALID_VARIABLE_TYPE_EXCEPTION + subCondition);
+                    throw new FunctionSyntaxException(INVALID_VARIABLE_TYPE_EXCEPTION + subCondition);
                 }
             } else {
-                throw new RuntimeException(UNKNOWN_VARIABLE_OR_INVALID_LITERAL_IN_CONDITION_EXCEPTION +
+                throw new FunctionSyntaxException(UNKNOWN_VARIABLE_OR_INVALID_LITERAL_IN_CONDITION_EXCEPTION +
                         subCondition);
             }
         }
@@ -383,7 +383,7 @@ public class FunctionBodyValidator {
 
 
     private void validateMethodLine(String line, Map<String, Variable<?>> localVariables, Map<String,
-            Variable<?>> outerVariables) throws RuntimeException{
+            Variable<?>> outerVariables) throws FunctionSyntaxException{
         if (line.matches(LINE_ENDING_IN_SEMICOLON_PATTERN)) {
             if (RowValidnessClass.isInMethodAssignment(line)) {
                 validateAssignment(line, localVariables, outerVariables);
@@ -393,7 +393,7 @@ public class FunctionBodyValidator {
                 validateMethodCall(line, localVariables);
             }
         } else {
-            throw new RuntimeException(INVALID_LINE + line);
+            throw new FunctionSyntaxException(INVALID_LINE + line);
         }
     }
 
@@ -412,18 +412,18 @@ public class FunctionBodyValidator {
         );
 
         if (variable == null) {
-            throw new RuntimeException(UNDEFINED_VARIABLE + variableName);
+            throw new FunctionSyntaxException(UNDEFINED_VARIABLE + variableName);
         }
 
         String resolvedValueType = resolveValueAndGetType(value, localVariables, globalMap);
 
         // Dynamically check type compatibility
         if (!variable.getType().equals(resolvedValueType)) {
-            throw new RuntimeException(TYPE_MISMATCH_FOR_VARIABLE + variableName);
+            throw new FunctionSyntaxException(TYPE_MISMATCH_FOR_VARIABLE + variableName);
         }
 
         if (variable.isFinal()) {
-            throw new RuntimeException(CANNOT_ASSIGN_A_VALUE_TO_FINAL_VARIABLE + variableName);
+            throw new FunctionSyntaxException(CANNOT_ASSIGN_A_VALUE_TO_FINAL_VARIABLE + variableName);
         }
     }
 
@@ -438,7 +438,7 @@ public class FunctionBodyValidator {
         return validateLiteralAndGetType(value); // Logic for literal validation
     }
 
-    private String validateLiteralAndGetType(String value) throws RuntimeException {
+    private String validateLiteralAndGetType(String value) throws FunctionSyntaxException {
         // Match against type-specific patterns
         if (value.matches(INT_PATTERN)) {
             return INT;
@@ -455,7 +455,7 @@ public class FunctionBodyValidator {
         if (value.matches(STRING_PATTERN)) {
             return STRING; // Remove quotes
         }
-        throw new RuntimeException(INVALID_LITERAL_VALUE + value);
+        throw new FunctionSyntaxException(INVALID_LITERAL_VALUE + value);
     }
 
     private Object resolveValue(String value, Map<String, Variable<?>> localVariables,
@@ -469,7 +469,7 @@ public class FunctionBodyValidator {
         return validateLiteral(value); // Logic for literal validation
     }
 
-    private Object validateLiteral(String value) throws RuntimeException {
+    private Object validateLiteral(String value) throws FunctionSyntaxException {
         // Match against type-specific patterns
         if (value.matches(INT_PATTERN)) {
             return Integer.parseInt(value);
@@ -486,19 +486,19 @@ public class FunctionBodyValidator {
         if (value.matches(STRING_PATTERN)) {
             return value.substring(INT1, value.length() - INT1); // Remove quotes
         }
-        throw new RuntimeException(INVALID_LITERAL_VALUE + value);
+        throw new FunctionSyntaxException(INVALID_LITERAL_VALUE + value);
     }
 
     private void validateReturnStatement(String line) {
         if (!line.equals(RETURN_AND_END_LINE)) {
-            throw new RuntimeException(INVALID_RETURN_STATEMENT + line);
+            throw new FunctionSyntaxException(INVALID_RETURN_STATEMENT + line);
         }
     }
 
     private void validateVariableDeclaration(String line, Map<String, Variable<?>> localVariables)
-            throws RuntimeException{
+            throws FunctionSyntaxException{
         if (!line.matches(DECLERATION_PATTERN)) {
-            throw new RuntimeException(INVALID_VARIABLE_DECLARATION_EXCEPTION + line);
+            throw new FunctionSyntaxException(INVALID_VARIABLE_DECLARATION_EXCEPTION + line);
         }
 
         // Extract components
@@ -524,7 +524,7 @@ public class FunctionBodyValidator {
         String[] nameValue = declaration.split(REGEX_WORD_SPACE_WORD);
         String name = nameValue[0];
         if (localVariables.containsKey(name)) {
-            throw new RuntimeException(DUPLICATE_VARIABLE_NAME_IN_LOCAL_SCOPE + name);
+            throw new FunctionSyntaxException(DUPLICATE_VARIABLE_NAME_IN_LOCAL_SCOPE + name);
         }
 
         Object resolvedValue;
@@ -535,30 +535,30 @@ public class FunctionBodyValidator {
             String resolvedValueType = resolveValueAndGetType(valueAsString, localVariables, this.globalMap);
             resolvedValue = resolveValue(valueAsString, localVariables, this.globalMap);
             if (resolvedValue == null)
-                throw new RuntimeException(ASSIGNING_VARIABLE_TO_NULL_REFERENCE);
+                throw new FunctionSyntaxException(ASSIGNING_VARIABLE_TO_NULL_REFERENCE);
             // Dynamically check type compatibility
             if (!type.trim().equals(resolvedValueType)) {
-                throw new RuntimeException(TYPE_MISMATCH_FOR_VARIABLE + name);
+                throw new FunctionSyntaxException(TYPE_MISMATCH_FOR_VARIABLE + name);
             }
             localVariables.put(name, new Variable<>(resolvedValue, type, isFinal));
         } else if (isFinal) {
-            throw new RuntimeException(FINAL_WITHOUT_ININTIALIZATION_ERROR);
+            throw new FunctionSyntaxException(FINAL_WITHOUT_ININTIALIZATION_ERROR);
         } else{
             localVariables.put(name, new Variable<>(null, type, isFinal));
         }
     }
 
     private void validateMethodCall(String line, Map<String, Variable<?>> localVariables)
-            throws RuntimeException {
+            throws FunctionSyntaxException {
         // Regex for method call: methodName(arg1, arg2, ...)
         String methodCallPattern = METHOD_CALL_FORMAT;
         if (!line.matches(methodCallPattern)) {
-            throw new RuntimeException(INVALID_METHOD_CALL + line);
+            throw new FunctionSyntaxException(INVALID_METHOD_CALL + line);
         }
 
         String methodName = line.substring(0, line.indexOf(CHAR_OPENING_REGULAR_BRACE)).trim();
         if (!functionsMap.containsKey(methodName)) {
-            throw new RuntimeException(EXCEPTION_UNDEFINED_METHOD + methodName);
+            throw new FunctionSyntaxException(EXCEPTION_UNDEFINED_METHOD + methodName);
         }
 
         String arguments = line.substring(line.indexOf(CHAR_OPENING_REGULAR_BRACE) + INT1,
@@ -568,7 +568,7 @@ public class FunctionBodyValidator {
             int argsLength = args.length;
             int functionNumberOfParameters = functionsMap.get(methodName).size();
             if (argsLength != functionNumberOfParameters){
-                throw new RuntimeException(INCOMPATIBLE_NUMBER_OF_PARAMETERS_AT_FUNCTION_CALL);
+                throw new FunctionSyntaxException(INCOMPATIBLE_NUMBER_OF_PARAMETERS_AT_FUNCTION_CALL);
             }
 
             for (int index = 0; index < argsLength; index++) {
@@ -579,7 +579,7 @@ public class FunctionBodyValidator {
                     declaredInputType = entry.getValue().getType();
                 }
                 if (!sentType.equals(declaredInputType)){
-                    throw new RuntimeException(INCOMPATIBLE_PARAMETERS_AT_FUNCTION_CALL);
+                    throw new FunctionSyntaxException(INCOMPATIBLE_PARAMETERS_AT_FUNCTION_CALL);
                 }
             }
         }

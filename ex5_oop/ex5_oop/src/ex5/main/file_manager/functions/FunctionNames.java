@@ -47,9 +47,9 @@ public class FunctionNames {
     /**
      * Extracts all function names and validates their declarations.
      *
-     * @throws RuntimeException if a function declaration is invalid.
+     * @throws FunctionSyntaxException if a function declaration is invalid.
      */
-    public void getAllFunctionsNames() throws RuntimeException {
+    public void getAllFunctionsNames() throws FunctionSyntaxException {
         for (int index = 0; index < linesNumber; index++) {
             String line = linesArray.get(index);
             if (RowValidnessClass.isStartFunction(line)) {
@@ -67,10 +67,10 @@ public class FunctionNames {
         return functionsMap;
     }
 
-    private void checkFunctionDeclaration(String line) throws RuntimeException {
+    private void checkFunctionDeclaration(String line) throws FunctionSyntaxException {
         String[] splitted = line.split(SPLIT_PATTERN, TWO);
         if (splitted.length != TWO) {
-            throw new RuntimeException(ERROR_INVALID_DECLARATION);
+            throw new FunctionSyntaxException(ERROR_INVALID_DECLARATION);
         }
         String functionLeftPart = splitted[0];
         String functionRightPart = splitted[ONE].trim();
@@ -78,19 +78,19 @@ public class FunctionNames {
         Pattern leftPattern = Pattern.compile(FUNCTION_DECLARATION_PATTERN);
         Matcher matcher = leftPattern.matcher(functionLeftPart);
         if (!matcher.matches()) {
-            throw new RuntimeException(ERROR_INVALID_SYNTAX + line);
+            throw new FunctionSyntaxException(ERROR_INVALID_SYNTAX + line);
         }
 
         String functionName = matcher.group(ONE);
 
         if (functionsMap.containsKey(functionName)) {
-            throw new RuntimeException(ERROR_DUPLICATE_FUNCTION + functionName);
+            throw new FunctionSyntaxException(ERROR_DUPLICATE_FUNCTION + functionName);
         }
 
         Pattern paramPattern = Pattern.compile(PARAMETER_PATTERN);
         Matcher paramMatcher = paramPattern.matcher(functionRightPart);
         if (!paramMatcher.matches()) {
-            throw new RuntimeException(ERROR_INVALID_PARAMETER_SYNTAX + line);
+            throw new FunctionSyntaxException(ERROR_INVALID_PARAMETER_SYNTAX + line);
         }
 
         String paramList = paramMatcher.group(1);
@@ -101,14 +101,14 @@ public class FunctionNames {
             for (String param : params) {
                 String[] paramParts = param.trim().split(SPACES_PATTERN);
                 if (paramParts.length != TWO) {
-                    throw new RuntimeException(ERROR_INVALID_PARAMETER + param);
+                    throw new FunctionSyntaxException(ERROR_INVALID_PARAMETER + param);
                 }
 
                 String paramType = paramParts[0];
 
                 String paramName = paramParts[ONE];
                 if (!paramType.matches(VAR_TYPES)) {
-                    throw new RuntimeException(ERROR_INVALID_PARAMETER_TYPE + paramType);
+                    throw new FunctionSyntaxException(ERROR_INVALID_PARAMETER_TYPE + paramType);
                 }
 
                 Variable<Object> variable = new Variable<>(null, paramType, false);

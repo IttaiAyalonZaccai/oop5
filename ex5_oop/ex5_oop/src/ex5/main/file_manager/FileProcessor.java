@@ -3,6 +3,7 @@ package ex5.main.file_manager;
 import ex5.main.Variable;
 import ex5.main.file_manager.functions.FunctionBodyValidator;
 import ex5.main.file_manager.functions.FunctionNames;
+import ex5.main.file_manager.functions.FunctionSyntaxException;
 import ex5.main.file_manager.global_variables.GlobalVariables;
 
 import java.io.BufferedReader;
@@ -57,7 +58,7 @@ public class FileProcessor{
                 RowValidnessClass.checkSuffixes(line, lineIndex);
                 RowValidnessClass.checkMiddleComments(line, lineIndex);
                 RowValidnessClass.checkLineFormat(line, lineIndex);
-            } catch (RuntimeException e) {
+            } catch (SyntaxException e) {
                 System.out.println(SYNTAX_ERROR_EXIT_CODE);
                 System.out.println(e.getMessage());
                 System.exit(SYNTAX_ERROR_EXIT_CODE);
@@ -71,9 +72,9 @@ public class FileProcessor{
     public void checkGlobalVariables() {
         GlobalVariables globalVariables = new GlobalVariables(linesArray);
         try {
-        globalVariables.validAndCreateGlobalMap();
+            globalVariables.validAndCreateGlobalMap();
         }
-        catch (RuntimeException e) {
+        catch (SyntaxException e) {
             System.out.println(SYNTAX_ERROR_EXIT_CODE);
             System.out.println(e.getMessage());
             System.exit(SYNTAX_ERROR_EXIT_CODE);
@@ -89,7 +90,7 @@ public class FileProcessor{
         try {
             functionNames.getAllFunctionsNames();
         }
-        catch (RuntimeException e) {
+        catch (FunctionSyntaxException e) {
             System.out.println(SYNTAX_ERROR_EXIT_CODE);
             System.out.println(e.getMessage());
             System.exit(SYNTAX_ERROR_EXIT_CODE);
